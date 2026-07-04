@@ -1,8 +1,8 @@
 import { providers, buildUrl } from './providers.js';
-import { validateUrl } from './validator.js';
 
+// خريطة التخزين المؤقت (لكل فيلم/مسلسل)
 const cacheMap = new Map();
-const CACHE_TTL = 60 * 60 * 1000; // ساعة
+const CACHE_TTL = 60 * 60 * 1000; // ساعة واحدة
 
 const getCacheKey = (params) => {
   const { type, id, season, episode } = params;
@@ -13,7 +13,7 @@ const getCacheKey = (params) => {
 export const getStreams = async (params) => {
   const key = getCacheKey(params);
 
-  // 1. التحقق من الكاش
+  // 1. التحقق من الكاش (للسرعة الفائقة)
   if (cacheMap.has(key)) {
     const entry = cacheMap.get(key);
     if (Date.now() - entry.timestamp < CACHE_TTL) {
@@ -22,55 +22,26 @@ export const getStreams = async (params) => {
     }
   }
 
-  console.log(`🔄 جاري اختبار المصادر لـ ${key}...`);
+  console.log(`🔄 جاري بناء روابط لـ ${key}...`);
 
-  try {
-    // 2. اختبار جميع المصادر بالتوازي، ولكن مع التقاط الأخطاء الفردية
-    const results = await Promise.allSettled(
-      providers.map(async (provider) => {
-        const url = buildUrl(provider, params);
-        const isValid = await validateUrl(url);
-        return {
-          id: provider.id,
-          label: provider.label,
-          url: url,
-          status: isValid ? '✅ يعمل' : '❌ ميت (محجوب أو متعطل)'
-        };
-      })
-    );
+  // 2. بناء جميع الروابط الـ 20 دون اختبار (لأن السيرفر السحابي محجوب)
+  //    التطبيق (العميل) هو الذي سيختبر الصلاحية عند التشغيل
+  const sources = providers.map((provider) => ({
+    id: provider.id,
+    label: provider.label,
+    url: buildUrl(provider, params),
+    status: '✅ جاهز للتشغيل (حاول في التطبيق)'
+  }));
 
-    // 3. استخراج النتائج الناجحة فقط (حتى لو فشل بعضها)
-    const finalSources = results
-      .filter(result => result.status === 'fulfilled')
-      .map(result => result.value);
+  // 3. تخزين النتيجة في الكاش
+  cacheMap.set(key, {
+    timestamp: Date.now(),
+    sources: sources
+  });
 
-    // 4. ترتيب النتيجة (العاملة أولاً)
-    const working = finalSources.filter(s => s.status === '✅ يعمل');
-    const dead = finalSources.filter(s => s.status !== '✅ يعمل');
-
-    const sortedSources = [...working, ...dead];
-
-    // 5. خطة احتياطية قصوى: إذا كانت القائمة فارغة (حدث خطأ جسيم)، نعيد جميع المصادر كـ "محاولة"
-    if (sortedSources.length === 0) {
-      const fallback = providers.map(p => ({
-        id: p.id,
-        label: p.label,
-        url: buildUrl(p, params),
-        status: '⚠️ وضع الاحتياطي (حاول التشغيل)'
-      }));
-      cacheMap.set(key, { timestamp: Date.now(), sources: fallback });
-      return fallback;
-    }
-
-    console.log(`📊 النتيجة: ${working.length} مصدر يعمل، ${dead.length} ميت`);
-    cacheMap.set(key, { timestamp: Date.now(), sources: sortedSources });
-    return sortedSources;
-
-  } catch (error) {
-    console.error('❌ خطأ فادح في جلب المصادر:', error.message);
-    // في حالة خطأ عام، نعيد قائمة فارغة مع رسالة واضحة بدلاً من تعطل الخادم
-    return [];
-  }
+  console.log(`✅ تم تجهيز ${sources.length} مصدر لـ ${key}`);
+  return sources;
 };
 
+// دالة التحديث القسري (نفس الشيء)
 export const refreshCache = (params) => getStreams(params);
