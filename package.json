@@ -2,11 +2,10 @@
   "name": "hydrastream",
   "version": "2.0.0",
   "type": "module",
-  "description": "مجمّع روابط بث ذاتي التجدد مع 20 مصدراً",
   "scripts": { "start": "node index.js" },
   "dependencies": {
     "axios": "^1.7.2",
     "cors": "^2.8.5",
     "express": "^4.19.2"
   }
-}
+} 
