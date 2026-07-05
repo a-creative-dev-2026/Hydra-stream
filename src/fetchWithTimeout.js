@@ -1,8 +1,8 @@
 import { circuitBreaker } from './circuitBreaker.js';
 
-// محاكاة جلب المصادر (بدون اتصال خارجي)
+// محاكاة طلب المصادر (بدون اتصال خارجي حقيقي)
 const simulateFetch = (url, providerId) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // محاكاة نجاح عشوائي (لتجربة الميزة)
     const isSuccess = Math.random() > 0.3; // 70% نجاح
     
@@ -12,16 +12,13 @@ const simulateFetch = (url, providerId) => {
         resolve({ providerId, url, status: 'success' });
       } else {
         circuitBreaker.recordFailure(providerId);
-        reject(new Error('محاكاة فشل المصدر'));
+        throw new Error('محاكاة فشل المصدر');
       }
-    }, 200); // محاكاة زمن الاستجابة
+    }, 200);
   });
 };
 
-// جلب المصادر بالتوازي (محاكاة)
-export const fetchSourcesParallel = async (sources, maxWait = 10000) => {
-  const startTime = Date.now();
-  
+export const fetchSourcesParallel = async (sources) => {
   const availableSources = sources.filter(s => !circuitBreaker.isOpen(s.id));
   
   if (availableSources.length === 0) {
@@ -34,9 +31,9 @@ export const fetchSourcesParallel = async (sources, maxWait = 10000) => {
   
   try {
     const result = await Promise.any(fetchPromises);
-    console.log(`✅ تم الحصول على مصدر ${result.providerId} (محاكاة)`);
+    console.log(`✅ تم اختيار المصدر: ${result.providerId}`);
     return result;
   } catch (error) {
-    throw new Error('جميع المصادر غير متاحة (محاكاة)');
+    throw new Error('جميع المصادر غير متاحة');
   }
 };
