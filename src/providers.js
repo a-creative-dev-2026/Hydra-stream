@@ -1,139 +1,30 @@
 export const providers = [
-  // ===== المصادر الأساسية (Core) - الأكثر استقراراً =====
-  { 
-    id: 'vidsrc.to', 
-    label: 'VidSrc.to', 
-    buildUrl: (p) => `https://vidsrc.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'vidsrc.pm', 
-    label: 'VidSrc.pm', 
-    buildUrl: (p) => `https://vidsrc.pm/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'vidsrc.cc', 
-    label: 'VidSrc.cc', 
-    buildUrl: (p) => `https://vidsrc.cc/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'vidsrc.me', 
-    label: 'VidSrc.me', 
-    buildUrl: (p) => `https://vidsrc.me/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'vidlink', 
-    label: 'VidLink', 
-    buildUrl: (p) => `https://vidlink.pro/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'vidfast', 
-    label: 'VidFast', 
-    buildUrl: (p) => `https://vidfast.pro/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: '2embed.cc', 
-    label: '2Embed.cc', 
-    buildUrl: (p) => `https://www.2embed.cc/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: '2embed.skin', 
-    label: '2Embed.skin', 
-    buildUrl: (p) => `https://2embed.skin/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-
-  // ===== المصادر الإضافية (Extras) =====
-  { 
-    id: 'autoembed.co', 
-    label: 'AutoEmbed.co', 
-    buildUrl: (p) => `https://autoembed.co/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'smashystream', 
-    label: 'SmashyStream', 
-    buildUrl: (p) => `https://smashystream.com/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'moviesapi.to', 
-    label: 'MoviesAPI.to', 
-    buildUrl: (p) => `https://moviesapi.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'nontongo.win', 
-    label: 'Nontongo.win', 
-    buildUrl: (p) => `https://nontongo.win/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'frembed', 
-    label: 'FrEmbed', 
-    buildUrl: (p) => `https://frembed.xyz/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'vixsrc', 
-    label: 'VixSrc', 
-    buildUrl: (p) => `https://vixsrc.net/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'multiembed', 
-    label: 'MultiEmbed', 
-    buildUrl: (p) => `https://multiembed.ru/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'embed.su', 
-    label: 'Embed.su', 
-    buildUrl: (p) => `https://embed.su/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-
-  // ===== مصادر إضافية من مشاريع أخرى =====
-  { 
-    id: 'flixhq', 
-    label: 'FlixHQ', 
-    buildUrl: (p) => `https://flixhq.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'watchseries', 
-    label: 'WatchSeries', 
-    buildUrl: (p) => `https://watchseriesx.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'superembed', 
-    label: 'SuperEmbed', 
-    buildUrl: (p) => `https://superembed.xyz/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'vidcore', 
-    label: 'VidCore', 
-    buildUrl: (p) => `https://vidcore.xyz/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'movie-web', 
-    label: 'Movie-Web', 
-    buildUrl: (p) => `https://movie-web.app/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'rabbitstream', 
-    label: 'RabbitStream', 
-    buildUrl: (p) => `https://rabbitstream.net/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'lordflix', 
-    label: 'LordFlix', 
-    buildUrl: (p) => `https://lordflix.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'dahmermovies', 
-    label: 'DahmerMovies', 
-    buildUrl: (p) => `https://dahmermovies.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'videasy', 
-    label: 'Videasy', 
-    buildUrl: (p) => `https://videasy.net/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'notorrent', 
-    label: 'NoTorrent', 
-    buildUrl: (p) => `https://notorrent.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  }
+  { id: 'vidsrc.to', label: 'VidSrc.to', buildUrl: (p) => `https://vidsrc.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'vidsrc.pm', label: 'VidSrc.pm', buildUrl: (p) => `https://vidsrc.pm/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'vidsrc.cc', label: 'VidSrc.cc', buildUrl: (p) => `https://vidsrc.cc/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'vidsrc.me', label: 'VidSrc.me', buildUrl: (p) => `https://vidsrc.me/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'vidlink', label: 'VidLink', buildUrl: (p) => `https://vidlink.pro/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'vidfast', label: 'VidFast', buildUrl: (p) => `https://vidfast.pro/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: '2embed.cc', label: '2Embed.cc', buildUrl: (p) => `https://www.2embed.cc/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: '2embed.skin', label: '2Embed.skin', buildUrl: (p) => `https://2embed.skin/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'autoembed.co', label: 'AutoEmbed.co', buildUrl: (p) => `https://autoembed.co/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'smashystream', label: 'SmashyStream', buildUrl: (p) => `https://smashystream.com/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'moviesapi.to', label: 'MoviesAPI.to', buildUrl: (p) => `https://moviesapi.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'nontongo.win', label: 'Nontongo.win', buildUrl: (p) => `https://nontongo.win/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'frembed', label: 'FrEmbed', buildUrl: (p) => `https://frembed.xyz/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'vixsrc', label: 'VixSrc', buildUrl: (p) => `https://vixsrc.net/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'multiembed', label: 'MultiEmbed', buildUrl: (p) => `https://multiembed.ru/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'embed.su', label: 'Embed.su', buildUrl: (p) => `https://embed.su/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'flixhq', label: 'FlixHQ', buildUrl: (p) => `https://flixhq.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'watchseries', label: 'WatchSeries', buildUrl: (p) => `https://watchseriesx.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'superembed', label: 'SuperEmbed', buildUrl: (p) => `https://superembed.xyz/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'vidcore', label: 'VidCore', buildUrl: (p) => `https://vidcore.xyz/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'movie-web', label: 'Movie-Web', buildUrl: (p) => `https://movie-web.app/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'rabbitstream', label: 'RabbitStream', buildUrl: (p) => `https://rabbitstream.net/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'lordflix', label: 'LordFlix', buildUrl: (p) => `https://lordflix.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'dahmermovies', label: 'DahmerMovies', buildUrl: (p) => `https://dahmermovies.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'videasy', label: 'Videasy', buildUrl: (p) => `https://videasy.net/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` },
+  { id: 'notorrent', label: 'NoTorrent', buildUrl: (p) => `https://notorrent.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` }
 ];
 
 export const buildUrl = (provider, params) => provider.buildUrl(params);
