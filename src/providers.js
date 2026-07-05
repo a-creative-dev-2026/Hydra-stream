@@ -1,5 +1,5 @@
 // ============================================================
-// قائمة المصادر (مرتبة أبجدياً حسب id)
+// قائمة المصادر (مرتبة أبجدياً)
 // ============================================================
 
 export const providers = [
@@ -18,18 +18,6 @@ export const providers = [
   },
 
   // ===== مصادر تبدأ بـ (v) =====
-  {
-    id: 'vidlink',
-    label: 'VidLink',
-    buildUrl: (p) => {
-      if (p.type === 'movie') {
-        return `https://vidlink.pro/movie/${p.id}`;
-      } else if (p.type === 'tv') {
-        return `https://vidlink.pro/tv/${p.id}`;
-      }
-      return '';
-    }
-  },
   {
     id: 'vidsrc-embed',
     label: 'VidSrc-embed.ru',
@@ -92,7 +80,6 @@ export const providers = [
   }
 ];
 
-// دالة مساعدة لبناء الرابط
 export const buildUrl = (provider, params) => {
   return provider.buildUrl(params);
 };
