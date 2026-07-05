@@ -1,162 +1,154 @@
 // ============================================================
-// قائمة المصادر (32 مصدراً) - محدثة ومنظمة
+// قائمة المصادر (مصنفة حسب النوع: أفلام، مسلسلات، أنمي)
 // ============================================================
 
 export const providers = [
-  // ===== المصادر الأساسية (Core) - 7 مصادر =====
+  // =========================================================
+  // 🔵 المصادر الأساسية (تعمل للأفلام والمسلسلات والأنمي)
+  // =========================================================
   { 
     id: 'vidsrc.to', 
     label: 'VidSrc.to', 
+    type: 'all',
     buildUrl: (p) => `https://vidsrc.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
   },
   { 
     id: 'vidsrc.pm', 
     label: 'VidSrc.pm', 
+    type: 'all',
     buildUrl: (p) => `https://vidsrc.pm/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'vidsrc.cc', 
-    label: 'VidSrc.cc', 
-    buildUrl: (p) => `https://vidsrc.cc/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
   },
   { 
     id: 'vidsrc.me', 
     label: 'VidSrc.me', 
+    type: 'all',
     buildUrl: (p) => `https://vidsrc.me/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
   },
+
+  // =========================================================
+  // 🟢 مصادر بديلة قوية (أفلام ومسلسلات)
+  // =========================================================
   { 
-    id: 'vidlink', 
-    label: 'VidLink', 
-    buildUrl: (p) => `https://vidlink.pro/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'vidplay', 
+    label: 'VidPlay (بديل VidLink)', 
+    type: 'movie,tv',
+    buildUrl: (p) => `https://vidplay.online/embed/${p.id}` 
   },
   { 
-    id: 'vidfast', 
-    label: 'VidFast', 
-    buildUrl: (p) => `https://vidfast.pro/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'filemoon', 
+    label: 'FileMoon', 
+    type: 'movie,tv',
+    buildUrl: (p) => `https://filemoon.sx/e/${p.id}` 
   },
   { 
-    id: '2embed.cc', 
-    label: '2Embed.cc', 
-    buildUrl: (p) => `https://www.2embed.cc/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'streamwish', 
+    label: 'StreamWish', 
+    type: 'movie,tv',
+    buildUrl: (p) => `https://streamwish.com/e/${p.id}` 
   },
   { 
-    id: '2embed.skin', 
-    label: '2Embed.skin', 
-    buildUrl: (p) => `https://2embed.skin/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'vidmoly', 
+    label: 'VidMoly', 
+    type: 'movie,tv',
+    buildUrl: (p) => `https://vidmoly.to/embed-${p.id}.html` 
+  },
+  { 
+    id: 'streamsb', 
+    label: 'StreamSB', 
+    type: 'movie,tv',
+    buildUrl: (p) => `https://sbplay2.com/e/${p.id}.html` 
+  },
+  { 
+    id: 'doodstream', 
+    label: 'DoodStream', 
+    type: 'movie,tv',
+    buildUrl: (p) => `https://doodstream.com/d/${p.id}` 
+  },
+  { 
+    id: 'streamtape', 
+    label: 'StreamTape', 
+    type: 'movie,tv',
+    buildUrl: (p) => `https://streamtape.com/v/${p.id}` 
+  },
+  { 
+    id: 'mixdrop', 
+    label: 'MixDrop', 
+    type: 'movie,tv',
+    buildUrl: (p) => `https://mixdrop.co/e/${p.id}` 
   },
 
-  // ===== المصادر الإضافية (Extras) - 5 مصادر =====
+  // =========================================================
+  // 🟡 مصادر الأنمي المتخصصة
+  // =========================================================
   { 
-    id: 'autoembed.co', 
-    label: 'AutoEmbed.co', 
-    buildUrl: (p) => `https://autoembed.co/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'aniwatch', 
+    label: 'AniWatch (Zoro)', 
+    type: 'anime',
+    buildUrl: (p) => `https://aniwatch.to/embed/${p.id}?ep=${p.episode || 1}` 
   },
   { 
-    id: 'smashystream', 
-    label: 'SmashyStream', 
-    buildUrl: (p) => `https://smashystream.com/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'gogoanime', 
+    label: 'GogoAnime', 
+    type: 'anime',
+    buildUrl: (p) => `https://gogoanime3.co/embed/${p.id}?ep=${p.episode || 1}` 
   },
   { 
-    id: 'moviesapi.to', 
-    label: 'MoviesAPI.to', 
-    buildUrl: (p) => `https://moviesapi.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: '9anime', 
+    label: '9Anime', 
+    type: 'anime',
+    buildUrl: (p) => `https://9anime.to/embed/${p.id}?ep=${p.episode || 1}` 
   },
   { 
-    id: 'nontongo.win', 
-    label: 'Nontongo.win', 
-    buildUrl: (p) => `https://nontongo.win/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'animeheaven', 
+    label: 'AnimeHeaven', 
+    type: 'anime',
+    buildUrl: (p) => `https://animeheaven.me/embed/${p.id}` 
   },
   { 
-    id: 'frembed', 
-    label: 'FrEmbed', 
-    buildUrl: (p) => `https://frembed.xyz/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'animension', 
+    label: 'Animension', 
+    type: 'anime',
+    buildUrl: (p) => `https://animension.to/embed/${p.id}` 
+  },
+  { 
+    id: 'kickassanime', 
+    label: 'KickAssAnime', 
+    type: 'anime',
+    buildUrl: (p) => `https://kickassanime.mx/embed/${p.id}` 
   },
 
-  // ===== مصادر إضافية (Extra) - مصادر جديدة =====
+  // =========================================================
+  // 🟣 مصادر التضمين المتعددة (Embed Aggregators)
+  // =========================================================
   { 
-    id: 'vixsrc', 
-    label: 'VixSrc', 
-    buildUrl: (p) => `https://vixsrc.net/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'superembed', 
+    label: 'SuperEmbed', 
+    type: 'all',
+    buildUrl: (p) => `https://superembed.stream/embed/${p.id}` 
   },
   { 
     id: 'multiembed', 
     label: 'MultiEmbed', 
-    buildUrl: (p) => `https://multiembed.ru/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    type: 'all',
+    buildUrl: (p) => `https://multiembed.mov/embed/${p.id}` 
   },
   { 
-    id: 'embed.su', 
-    label: 'Embed.su', 
-    buildUrl: (p) => `https://embed.su/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: '2embed', 
+    label: '2Embed.ru', 
+    type: 'all',
+    buildUrl: (p) => `https://2embed.ru/embed/${p.id}` 
   },
   { 
-    id: 'vidcore', 
-    label: 'VidCore', 
-    buildUrl: (p) => `https://vidcore.xyz/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'embedicu', 
+    label: 'Embed.icu', 
+    type: 'all',
+    buildUrl: (p) => `https://embed.icu/embed/${p.id}` 
   },
   { 
-    id: 'superembed', 
-    label: 'SuperEmbed', 
-    buildUrl: (p) => `https://superembed.xyz/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'flixhq', 
-    label: 'FlixHQ', 
-    buildUrl: (p) => `https://flixhq.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'watchseries', 
-    label: 'WatchSeries', 
-    buildUrl: (p) => `https://watchseriesx.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'rabbitstream', 
-    label: 'RabbitStream', 
-    buildUrl: (p) => `https://rabbitstream.net/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'lordflix', 
-    label: 'LordFlix', 
-    buildUrl: (p) => `https://lordflix.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'dahmermovies', 
-    label: 'DahmerMovies', 
-    buildUrl: (p) => `https://dahmermovies.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'videasy', 
-    label: 'Videasy', 
-    buildUrl: (p) => `https://videasy.net/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'notorrent', 
-    label: 'NoTorrent', 
-    buildUrl: (p) => `https://notorrent.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'gdriveplayer', 
-    label: 'GDrivePlayer', 
-    buildUrl: (p) => `https://gdriveplayer.me/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'fembed', 
-    label: 'Fembed', 
-    buildUrl: (p) => `https://fembed.com/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'movie-web', 
-    label: 'Movie-Web', 
-    buildUrl: (p) => `https://movie-web.app/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: '4khdhub', 
-    label: '4KHDHub', 
-    buildUrl: (p) => `https://4khdhub.com/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
-  },
-  { 
-    id: 'showbox', 
-    label: 'Showbox', 
-    buildUrl: (p) => `https://showbox.to/embed/${p.type}/${p.id}${p.type === 'tv' ? `/${p.season}/${p.episode}` : ''}` 
+    id: 'smashystream', 
+    label: 'Smashy.stream', 
+    type: 'all',
+    buildUrl: (p) => `https://smashy.stream/embed/${p.id}` 
   }
 ];
 
