@@ -17,7 +17,8 @@ export const getStreams = async (params) => {
     const sources = await Promise.all(
         providers.map(async (provider) => {
             const embedUrl = buildUrl(provider, params);
-            const videoUrl = await getAdFreeVideo(embedUrl);
+            // محاولة الحصول على فيديو خالٍ من الإعلانات باستخدام الروابط المباشرة
+            const videoUrl = await getAdFreeVideo(embedUrl, provider.id, params);
             
             return {
                 id: provider.id,
