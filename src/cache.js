@@ -1,13 +1,13 @@
 import { providers, buildUrl } from './providers.js';
-import { fetchSourcesParallel } from './fetchWithTimeout.js';
-import { circuitBreaker } from './circuitBreaker.js';
 
+// ذاكرة تخزين مؤقتة (اختيارية)
 const memoryCache = new Map();
-const CACHE_TTL = 60 * 60 * 1000;
+const CACHE_TTL = 60 * 60 * 1000; // ساعة واحدة
 
 export const getStreams = async (params) => {
   const cacheKey = `${params.type}:${params.id}:${params.season}:${params.episode}`;
 
+  // 1. التحقق من الكاش
   if (memoryCache.has(cacheKey)) {
     const entry = memoryCache.get(cacheKey);
     if (Date.now() - entry.timestamp < CACHE_TTL) {
@@ -16,40 +16,20 @@ export const getStreams = async (params) => {
     }
   }
 
-  const allSources = providers
-    .filter(provider => !circuitBreaker.isOpen(provider.id))
-    .map(provider => ({
-      id: provider.id,
-      label: provider.label,
-      url: buildUrl(provider, params)
-    }));
+  // 2. بناء الروابط مباشرة (بدون أي اتصال خارجي)
+  const sources = providers.map((provider) => ({
+    id: provider.id,
+    label: provider.label,
+    url: buildUrl(provider, params),
+    status: 'ready' // جاهز للتجربة في تطبيقك
+  }));
 
-  if (allSources.length === 0) {
-    const fallback = providers.map(p => ({
-      id: p.id,
-      label: p.label,
-      url: buildUrl(p, params),
-      status: '⏳ معطل مؤقتاً'
-    }));
-    return fallback;
-  }
+  // 3. تخزين النتيجة في الكاش
+  memoryCache.set(cacheKey, {
+    timestamp: Date.now(),
+    sources: sources
+  });
 
-  try {
-    const result = await fetchSourcesParallel(allSources);
-    const sources = [{
-      id: result.providerId,
-      label: providers.find(p => p.id === result.providerId)?.label || result.providerId,
-      url: result.url,
-      status: 'ready'
-    }];
-    
-    memoryCache.set(cacheKey, { timestamp: Date.now(), sources });
-    return sources;
-  } catch (error) {
-    const fallback = allSources.map(s => ({
-      ...s,
-      status: '⚠️ حاول مرة أخرى'
-    }));
-    return fallback;
-  }
+  console.log(`✅ تم تجهيز ${sources.length} مصدراً لـ ${cacheKey}`);
+  return sources;
 };
