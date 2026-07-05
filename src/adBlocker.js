@@ -1,93 +1,85 @@
 // ============================================================
-// ملف محاولة تقليل الإعلانات واستخراج الفيديو المباشر
+// محاولة سريعة لاستخراج الفيديو المباشر (بحد أقصى 1.5 ثانية)
 // ============================================================
 
 /**
- * محاولة استخراج رابط الفيديو المباشر من صفحة المصدر
- * @param {string} embedUrl - رابط التضمين الأصلي
- * @returns {Promise<string>} رابط الفيديو المباشر أو الرابط الأصلي
+ * محاولة سريعة لاستخراج الفيديو المباشر
+ * إذا نجحت خلال 1.5 ثانية → تعيد الرابط المباشر (بدون إعلانات)
+ * إذا فشلت → تعيد الرابط الأصلي فوراً
  */
 export const extractDirectVideo = async (embedUrl) => {
+  // مهلة قصيرة جداً (1.5 ثانية) للحفاظ على السرعة
+  const TIMEOUT_MS = 1500;
+  
   try {
-    console.log(`🔍 جاري محاولة استخراج الفيديو من: ${embedUrl}`);
+    console.log(`⚡ محاولة سريعة لاستخراج الفيديو من: ${embedUrl}`);
 
-    // 1. جلب صفحة المصدر
-    const response = await fetch(embedUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      },
-      signal: AbortSignal.timeout(8000) // مهلة 8 ثوانٍ
-    });
+    // استخدام Promise.race لمنافسة المهلة مع عملية الجلب
+    const result = await Promise.race([
+      // المحاولة الفعلية لاستخراج الفيديو
+      tryExtract(embedUrl),
+      // مهلة 1.5 ثانية
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('انتهت المهلة (1.5 ثانية)')), TIMEOUT_MS)
+      )
+    ]);
 
-    if (!response.ok) {
-      console.warn(`⚠️ فشل جلب الصفحة: ${response.status}`);
-      return embedUrl;
+    // إذا وصلنا هنا، فهذا يعني أن الاستخراج نجح خلال المهلة
+    if (result && result.startsWith('http')) {
+      console.log(`✅ تم استخراج فيديو مباشر خلال ${TIMEOUT_MS}ms`);
+      return result;
     }
-
-    const html = await response.text();
-
-    // 2. أنماط البحث عن روابط الفيديو المباشرة
-    const patterns = [
-      // روابط .m3u8 (HLS)
-      /(https?:[^\s"']+\.m3u8[^\s"']*)/i,
-      // روابط .mp4 مباشرة
-      /(https?:[^\s"']+\.mp4[^\s"']*)/i,
-      // أنماط JavaScript الشائعة
-      /['"](https?:[^"']+\.(?:m3u8|mp4)[^"']*)['"]/i,
-      /file\s*[:=]\s*['"](https?:[^"']+)['"]/i,
-      /videoUrl\s*[:=]\s*['"](https?:[^"']+)['"]/i,
-      /source\s*[:=]\s*['"](https?:[^"']+)['"]/i,
-      /src\s*[:=]\s*['"](https?:[^"']+\.(?:m3u8|mp4)[^"']*)['"]/i,
-      // أنماط JSON
-      /["'](https?:[^"']+\.m3u8[^"']*)["']/i
-    ];
-
-    for (const pattern of patterns) {
-      const match = html.match(pattern);
-      if (match && match[1]) {
-        const directUrl = match[1];
-        // تأكد من أن الرابط يبدو صالحاً
-        if (directUrl.startsWith('http')) {
-          console.log(`✅ تم استخراج فيديو مباشر: ${directUrl}`);
-          return directUrl;
-        }
-      }
-    }
-
-    // 3. البحث عن iframe آخر (بعض المواقع تضمين متداخل)
-    const iframeMatch = html.match(/<iframe[^>]+src=["']([^"']+)["']/i);
-    if (iframeMatch && iframeMatch[1]) {
-      const nestedUrl = iframeMatch[1];
-      if (nestedUrl !== embedUrl && nestedUrl.startsWith('http')) {
-        console.log(`🔄 محاولة استخراج من iframe متداخل: ${nestedUrl}`);
-        // استدعاء متكرر للـ iframe المتداخل (مرة واحدة فقط)
-        return await extractDirectVideo(nestedUrl);
-      }
-    }
-
-    // 4. إذا لم نجد رابطاً مباشراً، نعيد الرابط الأصلي
+    
     console.log('⚠️ لم يتم العثور على فيديو مباشر، إعادة الرابط الأصلي');
     return embedUrl;
 
   } catch (error) {
-    console.error(`❌ فشل استخراج الفيديو: ${error.message}`);
-    return embedUrl; // إعادة الرابط الأصلي كخطة احتياطية
+    // في حالة فشل الاستخراج أو انتهاء المهلة، نعيد الرابط الأصلي فوراً
+    console.log(`⏱️ انتهت المهلة أو فشل الاستخراج، إعادة الرابط الأصلي (${error.message})`);
+    return embedUrl;
   }
 };
 
 /**
- * محاولة تنقية الرابط من الإعلانات (إزالة معاملات التتبع)
+ * دالة الاستخراج الفعلية (بدون مهلة)
  */
-export const cleanUrl = (url) => {
+const tryExtract = async (embedUrl) => {
   try {
-    const urlObj = new URL(url);
-    // إزالة معاملات التتبع الشائعة
-    const trackingParams = ['ref', 'utm_source', 'utm_medium', 'utm_campaign', 'click_id', 'tracking'];
-    for (const param of trackingParams) {
-      urlObj.searchParams.delete(param);
+    // جلب الصفحة مع طلب سريع
+    const response = await fetch(embedUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
+      // لا نستخدم AbortSignal هنا لأننا نتحكم بالمهلة من الخارج
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
-    return urlObj.toString();
-  } catch {
-    return url;
+
+    const html = await response.text();
+
+    // أنماط البحث عن روابط الفيديو المباشرة
+    const patterns = [
+      /(https?:[^\s"']+\.m3u8[^\s"']*)/i,
+      /(https?:[^\s"']+\.mp4[^\s"']*)/i,
+      /file\s*[:=]\s*["'](https?:[^"']+)["']/i,
+      /videoUrl\s*[:=]\s*["'](https?:[^"']+)["']/i,
+      /source\s*[:=]\s*["'](https?:[^"']+)["']/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match && match[1] && match[1].startsWith('http')) {
+        return match[1];
+      }
+    }
+
+    // إذا لم نجد، نلقي خطأ ليعود إلى الرابط الأصلي
+    throw new Error('لم يتم العثور على رابط فيديو مباشر');
+
+  } catch (error) {
+    // نعيد طرح الخطأ ليعالجه المستوى الأعلى
+    throw error;
   }
 };
