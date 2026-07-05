@@ -1,78 +1,44 @@
 // ============================================================
-// نظام اختبار المصادر لكل فيلم/مسلسل على حدة (Smart Testing)
+// نظام إعادة المصادر بدون اختبار (لتجنب الحجب والخطأ)
 // ============================================================
 
 import { providers, buildUrl } from './providers.js';
 
+// ذاكرة تخزين مؤقتة بسيطة (لمدة ساعة)
 const memoryCache = new Map();
-const CACHE_TTL = 10 * 60 * 1000; // 10 دقائق
-
-const testSource = async (provider, params) => {
-  const url = buildUrl(provider, params);
-  const startTime = Date.now();
-  
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
-
-    const response = await fetch(url, {
-      method: 'HEAD',
-      signal: controller.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
-
-    clearTimeout(timeoutId);
-    const latency = Date.now() - startTime;
-    const isAlive = response.ok || response.status === 403 || response.status === 302;
-
-    return {
-      ...provider,
-      url,
-      status: isAlive ? '✅ يعمل' : '❌ ميت',
-      latency: isAlive ? `${latency}ms` : null,
-      verified: isAlive
-    };
-  } catch (error) {
-    return {
-      ...provider,
-      url,
-      status: '❌ ميت',
-      latency: null,
-      verified: false
-    };
-  }
-};
+const CACHE_TTL = 60 * 60 * 1000; // ساعة واحدة
 
 export const getStreams = async (params) => {
   const cacheKey = `${params.type}:${params.id}:${params.season}:${params.episode}`;
 
+  // التحقق من الكاش (تسريع الردود)
   if (memoryCache.has(cacheKey)) {
     const entry = memoryCache.get(cacheKey);
     if (Date.now() - entry.timestamp < CACHE_TTL) {
-      console.log(`✅ من الكاش (مختبر): ${cacheKey}`);
+      console.log(`✅ من الكاش: ${cacheKey}`);
       return entry.sources;
     }
   }
 
-  console.log(`🔄 جاري اختبار المصادر لـ ${params.id}...`);
+  // بناء جميع الروابط (بدون أي اختبار)
+  const sources = providers.map((provider) => ({
+    id: provider.id,
+    label: provider.label,
+    url: buildUrl(provider, params),
+    status: 'ready', // جاهز للتجربة في التطبيق
+    // إضافة تصنيف للمساعدة في الترتيب (اختياري)
+    priority: provider.priority || 5 // القيمة الافتراضية 5
+  }));
 
-  const testPromises = providers.map(provider => testSource(provider, params));
-  const results = await Promise.all(testPromises);
+  // ترتيب المصادر حسب الأولوية (إن وجدت)
+  const sortedSources = sources.sort((a, b) => (a.priority || 5) - (b.priority || 5));
 
-  // تصفية المصادر العاملة وترتيبها حسب السرعة
-  const working = results
-    .filter(r => r.verified === true)
-    .sort((a, b) => {
-      const latencyA = parseInt(a.latency) || Infinity;
-      const latencyB = parseInt(b.latency) || Infinity;
-      return latencyA - latencyB;
-    });
-
+  // تخزين النتيجة في الكاش
   memoryCache.set(cacheKey, {
     timestamp: Date.now(),
-    sources: working
+    sources: sortedSources
   });
 
-  console.log(`✅ تم العثور على ${working.length} مصدراً يعمل (من أصل ${providers.length})`);
-  return working;
+  console.log(`✅ تم تجهيز ${sources.length} مصدراً لـ ${cacheKey}`);
+  return sortedSources;
 };
