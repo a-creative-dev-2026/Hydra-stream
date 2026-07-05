@@ -4,16 +4,18 @@ import path from 'path';
 const LOG_FILE = path.join(process.cwd(), 'errors.log');
 
 export const errorLogger = {
+  // تسجيل خطأ (محاكاة)
   logError(providerId, error, context = {}) {
     const logEntry = {
       timestamp: new Date().toISOString(),
       providerId,
       error: error.message || String(error),
       context,
-      stack: error.stack
+      // محاكاة
+      simulated: true
     };
     
-    // تسجيل في ملف
+    // تسجيل في الملف
     try {
       fs.appendFileSync(
         LOG_FILE,
@@ -21,14 +23,13 @@ export const errorLogger = {
         { flag: 'a' }
       );
     } catch (e) {
-      console.warn('⚠️ تعذر كتابة سجل الأخطاء:', e.message);
+      console.warn('⚠️ تعذر كتابة سجل الأخطاء');
     }
     
-    // تسجيل في وحدة التحكم (للمراقبة السريعة)
-    console.warn(`❌ خطأ في ${providerId}:`, error.message || error);
+    console.warn(`❌ خطأ محاكاة في ${providerId}:`, error.message || error);
   },
   
-  // قراءة الأخطاء من الملف (للتحليل)
+  // قراءة الأخطاء
   getErrorLogs(limit = 100) {
     try {
       if (!fs.existsSync(LOG_FILE)) return [];
@@ -40,7 +41,7 @@ export const errorLogger = {
     }
   },
   
-  // تحليل الأخطاء (إحصائيات)
+  // إحصائيات
   getErrorStats() {
     const logs = this.getErrorLogs(500);
     const stats = {};
