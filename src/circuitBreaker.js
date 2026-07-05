@@ -1,4 +1,4 @@
-// حالة كل مصدر
+// إدارة حالة المصادر بدون اتصال خارجي
 const breakerState = new Map();
 
 export const circuitBreaker = {
@@ -7,20 +7,19 @@ export const circuitBreaker = {
     const state = breakerState.get(providerId);
     if (!state) return false;
     
-    // إذا كان مفتوحاً، تحقق من انتهاء وقت الحظر
     if (state.status === 'OPEN') {
+      // التحقق من انتهاء وقت الحظر
       if (Date.now() > state.nextAttempt) {
-        // انتقل إلى حالة HALF-OPEN لاختبار المصدر
         state.status = 'HALF_OPEN';
         state.failures = 0;
         return false;
       }
-      return true; // لا نستخدم هذا المصدر حالياً
+      return true;
     }
     return false;
   },
   
-  // تسجيل نجاح المصدر
+  // تسجيل نجاح (محاكاة)
   recordSuccess(providerId) {
     const state = breakerState.get(providerId);
     if (state) {
@@ -29,11 +28,10 @@ export const circuitBreaker = {
     }
   },
   
-  // تسجيل فشل المصدر
+  // تسجيل فشل (محاكاة)
   recordFailure(providerId) {
     const state = breakerState.get(providerId);
     if (!state) {
-      // إنشاء حالة جديدة للمصدر
       breakerState.set(providerId, {
         failures: 1,
         status: 'CLOSED',
@@ -44,20 +42,19 @@ export const circuitBreaker = {
     
     state.failures += 1;
     
-    // إذا فشل 5 مرات متتالية، افتح الدائرة
     if (state.failures >= 5) {
       state.status = 'OPEN';
-      state.nextAttempt = Date.now() + 15 * 60 * 1000; // 15 دقيقة
-      console.log(`⛔ Circuit Breaker فتح للمصدر: ${providerId} لمدة 15 دقيقة`);
+      state.nextAttempt = Date.now() + 15 * 60 * 1000;
+      console.log(`⛔ المصدر ${providerId} معطل مؤقتاً (15 دقيقة)`);
     }
   },
   
-  // الحصول على إحصائيات المصادر
+  // إحصائيات
   getStats() {
     return Object.fromEntries(breakerState);
   },
 
-  // إعادة تعيين جميع قواطع الدائرة
+  // إعادة تعيين
   resetAll() {
     for (const [key] of breakerState) {
       breakerState.set(key, {
