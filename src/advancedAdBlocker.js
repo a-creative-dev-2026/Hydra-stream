@@ -1,19 +1,37 @@
 // ================================================================
-// 🛡️ نظام منع الإعلانات المتقدم - 10 طبقات
+// 🛡️ نظام منع الإعلانات المتطور - النسخة النهائية
 // ================================================================
 
 // ============================================================
-// الطبقة 1: المصادر الموثوقة
+// 📋 الطبقة 1: المصادر الموثوقة (خالية من الإعلانات)
 // ============================================================
 const TRUSTED_SOURCES = [
-  'moviesapi.to', 'player.videasy.net', 'vidcore.org',
-  'vidsrc.pm', 'vidsrc.me', 'vidsrc.mov', 'vidsrc.wiki', 'vidsrc.sbs'
+  'moviesapi.to',
+  'player.videasy.net',
+  'vidcore.org',
+  'vidsrc.pm',
+  'vidsrc.me',
+  'vidsrc.mov'
 ];
 
 // ============================================================
-// الطبقة 2: أنماط الإعلانات (شاملة)
+// 📋 الطبقة 2: المصادر التي لا يمكن إزالة إعلاناتها (نتجاوزها)
+// ============================================================
+const SKIP_SOURCES = [
+  'vidsrc.to',    // إعلانات مدمجة في المشغل
+  'vidsrc.sbs',   // مشابه لـ vidsrc.to
+  'vidsrc.wiki',  // مشابه لـ vidsrc.to
+  'vidsrc.top',   // مشابه لـ vidsrc.to
+  'vidsrc.ru',    // مشابه لـ vidsrc.to
+  'vidfast.vc',   // إعلانات كثيرة
+  'streamvaultsrc.click' // إعلانات كثيرة
+];
+
+// ============================================================
+// 📋 الطبقة 3: أنماط الإعلانات (شاملة جداً)
 // ============================================================
 const AD_PATTERNS = [
+  // شبكات إعلانية كبرى
   /doubleclick\.net/i, /googleadservices\.com/i, /googlesyndication\.com/i,
   /adservice\.google/i, /adserver\./i, /amazon-adsystem\.com/i,
   /facebook\.com\/tr/i, /taboola\.com/i, /outbrain\.com/i,
@@ -24,59 +42,51 @@ const AD_PATTERNS = [
   /smartadserver\.com/i, /sovrn\.com/i, /sharethrough\.com/i,
   /sonobi\.com/i, /media\.net/i, /advertising\.com/i,
   /adsystem\.com/i, /adzerk\.net/i, /adnami\.io/i,
-  /adobe\.com\/ad/i, /ads\.youtube\.com/i, /pagead2\.googlesyndication\.com/i,
+  /adobe\.com\/ad/i, /ads\.youtube\.com/i,
+  /pagead2\.googlesyndication\.com/i,
+  
+  // أنماط عامة
   /banner\./i, /popup\./i, /click2c\./i, /tracking\./i,
   /affiliate\./i, /ad\.js/i, /ads\./i, /sponsor/i,
   /promoted/i, /pagead/i, /pubads/i, /prebid/i,
   /adfox\./i, /adriver\./i, /advert/i, /analytics\./i,
-  /beacon\./i, /pixel\./i, /impression\./i, /conversion\./i,
-  /retargeting\./i, /remarketing\./i, /video-ads/i,
-  /ad-container/i, /ad-wrapper/i, /ad-overlay/i,
-  /preroll/i, /midroll/i, /postroll/i, /skip-ad/i,
-  /watch-ad/i, /ad-break/i, /advertisement/i,
-  /advertising/i, /promo/i, /commercial/i,
-  /sponsored/i, /partner/i, /branded/i
+  /beacon\./i, /pixel\./i, /impression\./i,
+  /conversion\./i, /retargeting\./i, /remarketing\./i,
+  
+  // إعلانات الفيديو
+  /video-ads/i, /ad-container/i, /ad-wrapper/i,
+  /ad-overlay/i, /preroll/i, /midroll/i, /postroll/i,
+  /skip-ad/i, /watch-ad/i, /ad-break/i,
+  /advertisement/i, /advertising/i, /promo/i,
+  /commercial/i, /sponsored/i, /partner/i, /branded/i,
+  
+  // إضافات
+  /juicyads\.com/i, /exoclick\.com/i, /popads\.net/i,
+  /adsterra\.com/i, /propellerads\.com/i, /clickadu\.com/i,
+  /mgid\.com/i, /revcontent\.com/i, /content\.ad/i,
+  /native\.ad/i, /intext/i, /under\.io/i, /voluum/i
 ];
 
 // ============================================================
-// الطبقة 3: محددات HTML للإزالة
-// ============================================================
-const AD_SELECTORS = [
-  '[id*="ad"]', '[class*="ad"]', '[id*="banner"]', '[class*="banner"]',
-  '[id*="popup"]', '[class*="popup"]', '[id*="google"]', '[class*="google"]',
-  '[id*="doubleclick"]', '[class*="doubleclick"]', '[id*="taboola"]',
-  '[class*="taboola"]', '[id*="outbrain"]', '[class*="outbrain"]',
-  '[id*="sponsor"]', '[class*="sponsor"]', '[id*="promo"]', '[class*="promo"]',
-  '[id*="commercial"]', '[class*="commercial"]', '[id*="advertisement"]',
-  '[class*="advertisement"]', '[id*="advertising"]', '[class*="advertising"]',
-  '[id*="partner"]', '[class*="partner"]', '[id*="branded"]', '[class*="branded"]',
-  '.video-ads', '.ad-container', '.ad-wrapper', '.ad-overlay',
-  '.preroll', '.midroll', '.postroll', '.skip-ad', '.ad-break',
-  '.ads-box', '.ads-container', '.ad-slot', '.ad-banner',
-  '.ad-popup', '.ad-sidebar', '.ad-footer', '.sponsored',
-  '.promoted', '.partner-post', '.branded-content',
-  'iframe[src*="doubleclick"]', 'iframe[src*="googlead"]',
-  'iframe[src*="adserver"]', 'iframe[src*="banner"]',
-  'iframe[src*="taboola"]', 'iframe[src*="outbrain"]'
-];
-
-// ============================================================
-// الطبقة 4: أنماط استخراج الفيديو
+// 📋 الطبقة 4: أنماط استخراج الفيديو (أسرع وأدق)
 // ============================================================
 const VIDEO_PATTERNS = [
+  // روابط HLS (.m3u8)
   /(https?:[^\s<>"']+\.m3u8[^\s<>"']*)/gi,
+  // روابط MP4 مباشرة
   /(https?:[^\s<>"']+\.mp4[^\s<>"']*)/gi,
+  // روابط TS
   /(https?:[^\s<>"']+\.ts[^\s<>"']*)/gi,
-  /(?:file|videoUrl|src|source)\s*[:=]\s*["']([^"']+\.(?:m3u8|mp4|ts)[^"']*)["']/gi,
+  // أنماط JavaScript الشائعة
+  /(?:file|videoUrl|src|source|url)\s*[:=]\s*["']([^"']+\.(?:m3u8|mp4|ts)[^"']*)["']/gi,
   /["'](https?:[^"']+\.(?:m3u8|mp4|ts)[^"']*)["']/gi,
-  /source\s*:\s*["'](https?:[^"']+\.m3u8[^"']*)["']/gi,
-  /video\s*:\s*["'](https?:[^"']+\.mp4[^"']*)["']/gi,
-  /playlist\s*[:=]\s*["']([^"']+\.m3u8[^"']*)["']/gi,
-  /manifest\s*[:=]\s*["']([^"']+\.m3u8[^"']*)["']/gi
+  // أنماط JSON
+  /["'](https?:[^"']+\.m3u8[^"']*)["']/gi,
+  /["'](https?:[^"']+\.mp4[^"']*)["']/gi
 ];
 
 // ============================================================
-// الطبقة 5: وكيل عشوائي
+// 📋 الطبقة 5: وكيل عشوائي (لتجاوز الحظر)
 // ============================================================
 const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -88,10 +98,10 @@ const USER_AGENTS = [
 const getRandomUserAgent = () => USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
 
 // ============================================================
-// الطبقة 6-10: الأدوات المساعدة والكاش
+// 📋 الطبقة 6: ذاكرة تخزين مؤقتة (للتسريع)
 // ============================================================
 const adFreeCache = new Map();
-const AD_CACHE_TTL = 30 * 60 * 1000;
+const AD_CACHE_TTL = 30 * 60 * 1000; // 30 دقيقة
 
 const cacheResult = (key, value) => {
   if (adFreeCache.size > 500) {
@@ -112,20 +122,35 @@ const getCachedResult = (key) => {
   return null;
 };
 
+// ============================================================
+// 📋 الطبقة 7: تنظيف الرابط من معاملات التتبع
+// ============================================================
 const cleanUrl = (url) => {
   try {
     const urlObj = new URL(url);
-    const paramsToRemove = ['ref', 'utm_source', 'utm_medium', 'utm_campaign', 'click_id', 'tracking', 'ad', 'banner', 'popup', 'affiliate', 'partner', 'campaign', 'source', 'fbclid', 'gclid', 'msclkid', 'dclid', 'click', 'redirect', 'aff', 'subid'];
+    const paramsToRemove = [
+      'ref', 'utm_source', 'utm_medium', 'utm_campaign',
+      'click_id', 'tracking', 'ad', 'banner', 'popup',
+      'affiliate', 'partner', 'campaign', 'source',
+      'fbclid', 'gclid', 'msclkid', 'dclid',
+      'click', 'redirect', 'aff', 'subid'
+    ];
     paramsToRemove.forEach(param => urlObj.searchParams.delete(param));
     return urlObj.toString();
   } catch { return url; }
 };
 
+// ============================================================
+// 📋 الطبقة 8: التحقق من وجود إعلانات
+// ============================================================
 const containsAds = (url) => {
   if (!url) return true;
   return AD_PATTERNS.some(pattern => pattern.test(url));
 };
 
+// ============================================================
+// 📋 الطبقة 9: استخراج الفيديو المباشر (أسرع طريقة)
+// ============================================================
 const extractVideoUrl = (html) => {
   for (const pattern of VIDEO_PATTERNS) {
     const matches = html.match(pattern);
@@ -134,7 +159,10 @@ const extractVideoUrl = (html) => {
         const urlMatch = match.match(/(https?:[^\s<>"']+)/i);
         if (urlMatch && urlMatch[1] && urlMatch[1].startsWith('http')) {
           const cleaned = cleanUrl(urlMatch[1]);
-          if (!containsAds(cleaned)) return cleaned;
+          // التأكد من أن الرابط ليس إعلاناً
+          if (!containsAds(cleaned) && !cleaned.includes('ad')) {
+            return cleaned;
+          }
         }
       }
     }
@@ -142,37 +170,32 @@ const extractVideoUrl = (html) => {
   return null;
 };
 
-const extractNestedIframes = (html) => {
-  const iframes = [];
-  const pattern = /<iframe[^>]+src=["']([^"']+)["']/gi;
-  let match;
-  while ((match = pattern.exec(html)) !== null) {
-    if (match[1] && match[1].startsWith('http')) {
-      iframes.push(match[1]);
-    }
-  }
-  return iframes;
-};
-
 // ============================================================
-// الوظيفة الرئيسية: 10 طبقات متداخلة
+// 📋 الطبقة 10: الوظيفة الرئيسية (سريعة وقوية)
 // ============================================================
 export const getAdFreeVideo = async (embedUrl, providerId) => {
   const cacheKey = `${providerId}:${embedUrl}`;
   
-  // الطبقة 1: الكاش
+  // 🔹 الطبقة 1: التحقق من الكاش
   const cached = getCachedResult(cacheKey);
   if (cached) return cached;
 
-  // الطبقة 2: المصادر الموثوقة
+  // 🔹 الطبقة 2: المصادر الموثوقة (نعيدها مباشرة)
   if (TRUSTED_SOURCES.some(s => embedUrl.includes(s))) {
     const cleaned = cleanUrl(embedUrl);
     cacheResult(cacheKey, cleaned);
     return cleaned;
   }
 
+  // 🔹 الطبقة 3: المصادر التي نتجاوزها (لا نحاول إزالة إعلاناتها)
+  if (SKIP_SOURCES.some(s => embedUrl.includes(s))) {
+    cacheResult(cacheKey, embedUrl);
+    return embedUrl;
+  }
+
+  // 🔹 الطبقة 4-10: محاولة استخراج فيديو مباشر
   try {
-    // الطبقة 3-5: جلب الصفحة بوكيل عشوائي
+    // محاولة سريعة (مهلة 2 ثانية)
     const response = await fetch(embedUrl, {
       headers: {
         'User-Agent': getRandomUserAgent(),
@@ -181,7 +204,7 @@ export const getAdFreeVideo = async (embedUrl, providerId) => {
         'DNT': '1',
         'Cache-Control': 'no-cache'
       },
-      signal: AbortSignal.timeout(3000)
+      signal: AbortSignal.timeout(2000)
     });
 
     if (!response.ok) {
@@ -190,60 +213,45 @@ export const getAdFreeVideo = async (embedUrl, providerId) => {
     }
 
     const html = await response.text();
-
-    // الطبقة 6: استخراج فيديو مباشر
+    
+    // محاولة استخراج فيديو مباشر
     const videoUrl = extractVideoUrl(html);
     if (videoUrl) {
       cacheResult(cacheKey, videoUrl);
       return videoUrl;
     }
 
-    // الطبقة 7: البحث في iframes
-    const iframes = extractNestedIframes(html);
-    for (const iframeUrl of iframes) {
-      if (!containsAds(iframeUrl)) {
-        try {
-          const iframeResponse = await fetch(iframeUrl, {
-            headers: { 'User-Agent': getRandomUserAgent(), 'DNT': '1' },
-            signal: AbortSignal.timeout(2000)
-          });
-          if (iframeResponse.ok) {
-            const iframeHtml = await iframeResponse.text();
-            const iframeVideo = extractVideoUrl(iframeHtml);
-            if (iframeVideo) {
-              cacheResult(cacheKey, iframeVideo);
-              return iframeVideo;
-            }
+    // محاولة البحث عن iframe متداخل
+    const iframeMatch = html.match(/<iframe[^>]+src=["']([^"']+)["']/i);
+    if (iframeMatch && iframeMatch[1]) {
+      try {
+        const iframeResponse = await fetch(iframeMatch[1], {
+          headers: { 'User-Agent': getRandomUserAgent(), 'DNT': '1' },
+          signal: AbortSignal.timeout(1500)
+        });
+        if (iframeResponse.ok) {
+          const iframeHtml = await iframeResponse.text();
+          const iframeVideo = extractVideoUrl(iframeHtml);
+          if (iframeVideo) {
+            cacheResult(cacheKey, iframeVideo);
+            return iframeVideo;
           }
-        } catch (e) {}
-      }
+        }
+      } catch (e) {}
     }
 
-    // الطبقة 8: تنظيف الرابط
-    const cleanedUrl = cleanUrl(embedUrl);
-    if (!containsAds(cleanedUrl)) {
-      cacheResult(cacheKey, cleanedUrl);
-      return cleanedUrl;
-    }
-
-    // الطبقة 9: رابط بسيط
-    const simpleClean = embedUrl.split('?')[0];
-    if (!containsAds(simpleClean)) {
-      cacheResult(cacheKey, simpleClean);
-      return simpleClean;
-    }
-
-    // الطبقة 10: فشل آمن
+    // إذا لم نجد فيديو مباشر، نعيد الرابط الأصلي
     cacheResult(cacheKey, embedUrl);
     return embedUrl;
 
   } catch (error) {
+    // في حالة الفشل، نعيد الرابط الأصلي (سرعة)
     cacheResult(cacheKey, embedUrl);
     return embedUrl;
   }
 };
 
-// تنظيف الكاش
+// تنظيف الكاش كل ساعة
 setInterval(() => {
   const now = Date.now();
   for (const [key, value] of adFreeCache) {
@@ -253,4 +261,4 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000);
 
-console.log('🛡️ نظام منع الإعلانات المتقدم (10 طبقات) جاهز!');
+console.log('🛡️ نظام منع الإعلانات المتطور جاهز (سريع وقوي)');
