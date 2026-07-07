@@ -1,44 +1,17 @@
 // ================================================================
-// 🔍 محرك البحث والترتيب الديناميكي - جميع المصادر (23)
+// 🔍 محرك البحث والترتيب الديناميكي - اختبار فعلي لكل طلب
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
 
 // ============================================================
-// 1. ذاكرة تخزين حالة المصادر (تجنب إعادة الاختبار)
+// 1. اختبار المصدر (محاولة HEAD ثم GET إذا فشل)
 // ============================================================
-const sourceStatusCache = new Map();
-const STATUS_CACHE_TTL = 5 * 60 * 1000; // 5 دقائق
-
-// ============================================================
-// 2. ترتيب الأولوية (يُستخدم فقط لكسر التعادل)
-// ============================================================
-const PRIORITY_ORDER = [
-  'vidsrc.pm', 'moviesapi', 'vidcore', 'vidsrc.to', 'vidsrc.me',
-  'vidsrc.mov', 'videasy', 'vidsrc.wiki', 'vidsrc.sbs', 'streamvaultsrc',
-  'vidsrc.top', 'vidsrc.ru', 'vidfast.vc', 'cinemaos', '111movies',
-  'vidzee', 'vidnest', 'cinesrc', 'wavembed', 'apiplayer',
-  'vidzen', 'vidphantom', 'animeplay'
-];
-
-const getPriority = (id) => {
-  const index = PRIORITY_ORDER.indexOf(id);
-  return index === -1 ? 999 : index;
-};
-
-// ============================================================
-// 3. اختبار المصدر (مهلة 1.5 ثانية)
-// ============================================================
-const testSource = async (url, providerId) => {
-  // التحقق من الكاش
-  const cached = sourceStatusCache.get(providerId);
-  if (cached && (Date.now() - cached.timestamp < STATUS_CACHE_TTL)) {
-    return cached;
-  }
-
+const testSource = async (url) => {
   try {
+    // محاولة HEAD أولاً (أسرع)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1500);
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
     
     const response = await fetch(url, {
       method: 'HEAD',
@@ -48,19 +21,33 @@ const testSource = async (url, providerId) => {
     
     clearTimeout(timeoutId);
     const isAlive = response.ok || response.status === 403 || response.status === 302;
+    return { isAlive, statusCode: response.status, method: 'HEAD' };
     
-    const result = { isAlive, statusCode: response.status, timestamp: Date.now() };
-    sourceStatusCache.set(providerId, result);
-    return result;
   } catch (error) {
-    const result = { isAlive: false, statusCode: null, error: error.message, timestamp: Date.now() };
-    sourceStatusCache.set(providerId, result);
-    return result;
+    // إذا فشل HEAD، نحاول GET (بعض المواقع تمنع HEAD)
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      // نأخذ أول 1024 بايت فقط ثم نغلق الاتصال
+      const isAlive = response.ok || response.status === 403 || response.status === 302;
+      return { isAlive, statusCode: response.status, method: 'GET' };
+      
+    } catch (e) {
+      return { isAlive: false, statusCode: null, error: e.message };
+    }
   }
 };
 
 // ============================================================
-// 4. توليد معرفات بحث متعددة
+// 2. توليد معرفات بحث متعددة
 // ============================================================
 const generateSearchIds = (id) => {
   const ids = [id];
@@ -72,60 +59,88 @@ const generateSearchIds = (id) => {
 };
 
 // ============================================================
-// 5. البحث وترتيب جميع المصادر (ديناميكي)
+// 3. البحث وترتيب جميع المصادر (ديناميكي - بدون كاش ثابت)
 // ============================================================
 export const searchSources = async (params) => {
   const { type, id, season, episode } = params;
   const searchIds = generateSearchIds(id);
   
-  console.log(`🔍 جاري اختبار وترتيب جميع المصادر (23) عن: ${id}`);
+  console.log(`🔍 جاري الاختبار الفعلي لجميع المصادر (23) عن: ${id}`);
 
-  // اختبار جميع المصادر بالتوازي
+  // اختبار جميع المصادر بالتوازي (بدون أي كاش)
   const results = await Promise.all(
     providers.map(async (provider) => {
-      const searchId = searchIds[0] || id;
-      const testParams = { type, id: searchId, season, episode };
-      const url = buildUrl(provider, testParams);
-      if (!url) return null;
+      // تجربة جميع المعرفات الممكنة
+      for (const searchId of searchIds) {
+        const testParams = { type, id: searchId, season, episode };
+        const url = buildUrl(provider, testParams);
+        if (!url) continue;
+        
+        const status = await testSource(url);
+        if (status.isAlive) {
+          // إذا وجدنا معرفاً يعمل، نستخدمه ونتوقف
+          return {
+            provider: provider.id,
+            label: provider.label,
+            url: url,
+            id: searchId,
+            type: 'embed',
+            isAlive: true,
+            statusCode: status.statusCode,
+            method: status.method
+          };
+        }
+      }
       
-      const status = await testSource(url, provider.id);
+      // إذا لم يعمل أي معرف، نرجع المصدر ميتاً
+      const fallbackUrl = buildUrl(provider, { type, id: id, season, episode });
       return {
         provider: provider.id,
         label: provider.label,
-        url: url,
-        id: searchId,
+        url: fallbackUrl || '',
+        id: id,
         type: 'embed',
-        isAlive: status.isAlive,
-        statusCode: status.statusCode,
-        error: status.error || null,
-        priority: getPriority(provider.id)
+        isAlive: false,
+        statusCode: null,
+        method: null
       };
     })
   );
 
-  const validResults = results.filter(r => r !== null);
+  const validResults = results.filter(r => r !== null && r.url);
 
   // ============================================================
-  // 🔥 الترتيب الديناميكي: يعتمد على الاختبار الفعلي أولاً
+  // 🔥 الترتيب الديناميكي: فقط يعتمد على isAlive
   // ============================================================
-  validResults.sort((a, b) => {
-    // 1. المصادر التي تعمل أولاً (isAlive)
-    if (a.isAlive && !b.isAlive) return -1;
-    if (!a.isAlive && b.isAlive) return 1;
-    
-    // 2. إذا كان كلاهما يعملان أو كلاهما لا يعملان، نرتب حسب الأولوية (ككسر تعادل)
-    return a.priority - b.priority;
+  // نقسم المصادر إلى مجموعتين: تعمل ولا تعمل
+  const alive = validResults.filter(r => r.isAlive === true);
+  const dead = validResults.filter(r => r.isAlive === false);
+
+  // نرتب المصادر العاملة حسب سرعة الاستجابة (statusCode)
+  // 200 أفضل من 302 أفضل من 403
+  alive.sort((a, b) => {
+    // نفضل 200 على 302 على 403
+    const scoreA = a.statusCode === 200 ? 0 : a.statusCode === 302 ? 1 : a.statusCode === 403 ? 2 : 3;
+    const scoreB = b.statusCode === 200 ? 0 : b.statusCode === 302 ? 1 : b.statusCode === 403 ? 2 : 3;
+    return scoreA - scoreB;
   });
 
-  const aliveCount = validResults.filter(r => r.isAlive).length;
-  console.log(`✅ ${aliveCount} مصدراً يعمل من أصل ${validResults.length}`);
-  console.log(`📊 المصادر العاملة: ${validResults.filter(r => r.isAlive).map(r => r.provider).join(', ')}`);
+  // نرتب المصادر الميتة أبجدياً (لكي يكون الترتيب ثابتاً)
+  dead.sort((a, b) => a.label.localeCompare(b.label));
 
-  return validResults;
+  // دمج القائمتين (العاملة أولاً، ثم الميتة)
+  const sortedResults = [...alive, ...dead];
+
+  console.log(`✅ ${alive.length} مصدراً يعمل من أصل ${validResults.length}`);
+  if (alive.length > 0) {
+    console.log(`📊 المصادر العاملة: ${alive.map(r => r.provider).join(', ')}`);
+  }
+
+  return sortedResults;
 };
 
 // ============================================================
-// 6. البحث عن أنمي
+// 4. البحث عن أنمي (مع اختبار فعلي)
 // ============================================================
 export const searchAnime = async (params) => {
   const { id, season, episode, language = 'sub', source = 's-2' } = params;
@@ -145,7 +160,7 @@ export const searchAnime = async (params) => {
     
     if (!url) return null;
     
-    const status = await testSource(url, 'animeplay');
+    const status = await testSource(url);
     if (status.isAlive) {
       return {
         provider: 'animeplay',
@@ -155,22 +170,11 @@ export const searchAnime = async (params) => {
         type: 'anime',
         language: language,
         isAlive: true,
-        statusCode: status.statusCode,
-        priority: getPriority('animeplay')
+        statusCode: status.statusCode
       };
     }
   } catch (e) {}
   return null;
 };
 
-// تنظيف الكاش
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of sourceStatusCache) {
-    if (now - value.timestamp > STATUS_CACHE_TTL) {
-      sourceStatusCache.delete(key);
-    }
-  }
-}, 10 * 60 * 1000);
-
-console.log('🔍 محرك البحث والترتيب الديناميكي جاهز (23 مصدراً)');
+console.log('🔍 محرك البحث والترتيب الديناميكي جاهز (بدون كاش ثابت)'); 
