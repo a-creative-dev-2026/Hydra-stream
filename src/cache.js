@@ -1,5 +1,5 @@
 // ================================================================
-// 📦 نظام التخزين المؤقت مع البحث التلقائي
+// 📦 نظام التخزين المؤقت - نسخة سريعة
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
@@ -7,13 +7,13 @@ import { getAdFreeVideo } from './adBlocker.js';
 import { searchSources, searchAnime } from './searchEngine.js';
 
 const memoryCache = new Map();
-const CACHE_TTL = 60 * 60 * 1000; // ساعة واحدة
+const CACHE_TTL = 2 * 60 * 60 * 1000; // ساعتين (أطول لتقليل الاختبارات)
 
 export const getStreams = async (params) => {
   const { type, id, season, episode } = params;
   const cacheKey = `${type}:${id}:${season}:${episode}`;
 
-  // 1. التحقق من الكاش
+  // 1. التحقق من الكاش (أسرع)
   if (memoryCache.has(cacheKey)) {
     const entry = memoryCache.get(cacheKey);
     if (Date.now() - entry.timestamp < CACHE_TTL) {
@@ -22,16 +22,16 @@ export const getStreams = async (params) => {
     }
   }
 
-  console.log(`🔄 جاري البحث التلقائي عن: ${id}`);
+  console.log(`🔄 بحث سريع عن: ${id}`);
 
   let sources = [];
 
-  // 2. البحث في المصادر العامة (أفلام ومسلسلات)
+  // 2. البحث السريع (نستخدم المصادر الأساسية فقط)
   if (type === 'movie' || type === 'tv') {
     const searchParams = { type, id, season, episode };
     const searchResults = await searchSources(searchParams);
     
-    // 3. محاولة منع الإعلانات لكل مصدر
+    // معالجة سريعة (بدون انتظار طويل)
     const cleanedResults = await Promise.all(
       searchResults.map(async (result) => {
         const adFreeUrl = await getAdFreeVideo(result.url, result.provider);
@@ -46,7 +46,7 @@ export const getStreams = async (params) => {
     sources = cleanedResults;
   }
 
-  // 4. إذا كان المطلوب أنمي، نضيف مصادر الأنمي
+  // 3. البحث عن أنمي (إذا لزم الأمر)
   if (type === 'anime' || (type === 'tv' && params.animeSource)) {
     const animeParams = { 
       id, 
@@ -66,10 +66,10 @@ export const getStreams = async (params) => {
     }
   }
 
-  // 5. إذا لم نجد أي مصادر، نستخدم جميع المصادر كخطة احتياطية
+  // 4. خطة احتياطية (إذا لم نجد أي مصدر)
   if (sources.length === 0) {
-    console.warn('⚠️ لم يتم العثور على مصادر، استخدام القائمة الكاملة');
-    const allSources = providers.map((provider) => {
+    console.warn('⚠️ استخدام القائمة الاحتياطية');
+    const allSources = providers.slice(0, 8).map((provider) => {
       const url = buildUrl(provider, params);
       return {
         provider: provider.id,
@@ -84,31 +84,24 @@ export const getStreams = async (params) => {
     sources = allSources;
   }
 
-  // 6. ترتيب النتائج: الخالية من الإعلانات أولاً
+  // 5. ترتيب النتائج
   sources.sort((a, b) => {
     if (a.adFree && !b.adFree) return -1;
     if (!a.adFree && b.adFree) return 1;
     return 0;
   });
 
-  // 7. تخزين النتيجة في الكاش
+  // 6. تخزين في الكاش
   memoryCache.set(cacheKey, {
     timestamp: Date.now(),
     sources: sources
   });
 
-  console.log(`✅ تم العثور على ${sources.length} مصدراً (${sources.filter(s => s.adFree).length} خالية من الإعلانات)`);
+  console.log(`✅ ${sources.length} مصدراً (${sources.filter(s => s.adFree).length} خالية من الإعلانات)`);
   return sources;
 };
 
-// دالة تنظيف الكاش
 export const clearCache = () => {
   memoryCache.clear();
   console.log('🧹 تم تنظيف الكاش');
-};
-
-// دالة حذف عنصر معين من الكاش
-export const removeFromCache = (key) => {
-  memoryCache.delete(key);
-  console.log(`🗑️ تم حذف ${key} من الكاش`);
 };
