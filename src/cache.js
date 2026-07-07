@@ -1,28 +1,29 @@
 // ================================================================
-// 📦 التخزين المؤقت - دمج البحث والترتيب ومنع الإعلانات
+// 📦 التخزين المؤقت - مع إعادة الاختبار لكل طلب
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
 import { getAdFreeVideo } from './advancedAdBlocker.js';
 import { searchSources, searchAnime } from './searchEngine.js';
 
+// كاش قصير المدى (5 دقائق فقط) لتسريع الطلبات المتكررة
 const memoryCache = new Map();
-const CACHE_TTL = 2 * 60 * 60 * 1000; // ساعتين
+const CACHE_TTL = 5 * 60 * 1000; // 5 دقائق فقط
 
 export const getStreams = async (params) => {
   const { type, id, season, episode } = params;
   const cacheKey = `${type}:${id}:${season}:${episode}`;
 
-  // التحقق من الكاش
+  // التحقق من الكاش (فقط للطلبات المتكررة خلال 5 دقائق)
   if (memoryCache.has(cacheKey)) {
     const entry = memoryCache.get(cacheKey);
     if (Date.now() - entry.timestamp < CACHE_TTL) {
-      console.log(`✅ من الكاش: ${cacheKey}`);
+      console.log(`✅ من الكاش (محدث): ${cacheKey}`);
       return entry.sources;
     }
   }
 
-  console.log(`🔄 جاري البحث والترتيب ومنع الإعلانات عن: ${id}`);
+  console.log(`🔄 جاري الاختبار الفعلي والترتيب الديناميكي عن: ${id}`);
 
   let sources = [];
 
@@ -34,18 +35,17 @@ export const getStreams = async (params) => {
     // تطبيق منع الإعلانات مع الحفاظ على الترتيب
     const processedResults = await Promise.all(
       searchResults.map(async (result) => {
-        // محاولة إزالة الإعلانات فقط للمصادر الحية
         let adFreeUrl = result.url;
         let adFree = false;
         
-        if (result.isAlive) {
+        if (result.isAlive && result.url) {
           adFreeUrl = await getAdFreeVideo(result.url, result.provider);
           adFree = adFreeUrl !== result.url;
         }
         
         return {
           ...result,
-          url: adFreeUrl,
+          url: adFreeUrl || result.url,
           adFree: adFree,
           status: result.isAlive ? '✅ يعمل' : '❌ لا يعمل'
         };
@@ -76,7 +76,7 @@ export const getStreams = async (params) => {
     }
   }
 
-  // خطة احتياطية (إذا لم نجد أي مصدر)
+  // خطة احتياطية
   if (sources.length === 0) {
     console.warn('⚠️ استخدام القائمة الاحتياطية');
     const allSources = providers.map((provider) => {
@@ -95,23 +95,15 @@ export const getStreams = async (params) => {
     sources = allSources;
   }
 
-  // ترتيب نهائي
-  sources.sort((a, b) => {
-    // المصادر الحية أولاً
-    if (a.isAlive && !b.isAlive) return -1;
-    if (!a.isAlive && b.isAlive) return 1;
-    // ثم حسب الأولوية
-    return (a.priority || 999) - (b.priority || 999);
-  });
-
-  // تخزين في الكاش
+  // تخزين في الكاش (لمدة 5 دقائق فقط)
   memoryCache.set(cacheKey, {
     timestamp: Date.now(),
     sources: sources
   });
 
-  const aliveCount = sources.filter(s => s.isAlive).length;
+  const aliveCount = sources.filter(s => s.isAlive === true).length;
   console.log(`✅ ${aliveCount} مصدراً يعمل من أصل ${sources.length}`);
+  
   return sources;
 };
 
