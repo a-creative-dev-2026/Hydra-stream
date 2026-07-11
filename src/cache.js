@@ -1,5 +1,5 @@
 // ================================================================
-// 📦 التخزين المؤقت - إظهار جميع المصادر مع الترتيب الديناميكي
+// 📦 التخزين المؤقت - مع البحث السريع
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
@@ -7,7 +7,7 @@ import { getAdFreeVideo } from './advancedAdBlocker.js';
 import { searchSources, searchAnime } from './searchEngine.js';
 
 const memoryCache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 دقائق
+const CACHE_TTL = 60 * 60 * 1000; // ساعة واحدة (لتقليل الطلبات)
 
 export const getStreams = async (params) => {
   const { type, id, season, episode } = params;
@@ -22,23 +22,22 @@ export const getStreams = async (params) => {
     }
   }
 
-  console.log(`🔄 جاري الاختبار والترتيب عن: ${id}`);
+  console.log(`⚡ بحث سريع عن: ${id}`);
 
   let sources = [];
 
-  // البحث في جميع المصادر (أفلام ومسلسلات)
+  // البحث في المصادر (أفلام ومسلسلات)
   if (type === 'movie' || type === 'tv') {
     const searchParams = { type, id, season, episode };
     const searchResults = await searchSources(searchParams);
     
-    // تطبيق منع الإعلانات مع الحفاظ على جميع المصادر
+    // تطبيق منع الإعلانات على النتائج
     const processedResults = await Promise.all(
       searchResults.map(async (result) => {
         let adFreeUrl = result.url;
         let adFree = false;
         
-        // محاولة إزالة الإعلانات فقط إذا كان المصدر يعمل ولديه رابط صحيح
-        if (result.isAlive && result.url && result.url !== '#') {
+        if (result.isAlive && result.url) {
           adFreeUrl = await getAdFreeVideo(result.url, result.provider);
           adFree = adFreeUrl !== result.url;
         }
@@ -76,7 +75,7 @@ export const getStreams = async (params) => {
     }
   }
 
-  // إذا لم نجد أي مصادر (حالة نادرة)، نستخدم القائمة الكاملة كاحتياطي
+  // إذا لم نجد أي مصدر، نستخدم القائمة الاحتياطية
   if (sources.length === 0) {
     console.warn('⚠️ استخدام القائمة الاحتياطية');
     const allSources = providers.map((provider) => {
@@ -101,9 +100,7 @@ export const getStreams = async (params) => {
     sources: sources
   });
 
-  const aliveCount = sources.filter(s => s.isAlive === true).length;
-  console.log(`✅ ${aliveCount} مصدراً يعمل من أصل ${sources.length}`);
-  
+  console.log(`✅ ${sources.filter(s => s.isAlive).length} مصدراً يعمل`);
   return sources;
 };
 
