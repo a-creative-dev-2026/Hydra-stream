@@ -1,18 +1,18 @@
 // ================================================================
-// 🔍 محرك البحث السريع - اختبار المصادر بالتوازي (Promise.race)
+// 🔍 محرك البحث المتوازي - اختبار جميع المصادر مع ترتيبها
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
 
 // ============================================================
-// 1. اختبار المصدر بسرعة (مهلة 1 ثانية فقط)
+// 1. اختبار المصدر بسرعة (مهلة 800ms)
 // ============================================================
 const testSource = async (url) => {
-  if (!url) return { isAlive: false };
+  if (!url) return { isAlive: false, statusCode: null };
   
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1000); // 1 ثانية فقط
+    const timeoutId = setTimeout(() => controller.abort(), 800);
     
     const response = await fetch(url, {
       method: 'HEAD',
@@ -26,62 +26,68 @@ const testSource = async (url) => {
       statusCode: response.status 
     };
   } catch {
-    return { isAlive: false };
+    return { isAlive: false, statusCode: null };
   }
 };
 
 // ============================================================
-// 2. البحث السريع - أول مصدر يعمل
+// 2. اختبار جميع المصادر بالتوازي (Promise.all)
 // ============================================================
 export const searchSources = async (params) => {
   const { type, id, season, episode } = params;
   
-  console.log(`⚡ بحث سريع عن: ${id}`);
+  console.log(`⚡ جاري اختبار جميع المصادر (10) بالتوازي عن: ${id}`);
 
-  try {
-    // نبحث عن أول مصدر يعمل (باستخدام Promise.any)
-    const result = await Promise.any(
-      providers.map(async (provider) => {
-        // بناء الرابط
-        let url = buildUrl(provider, { type, id, season, episode });
-        
-        // إذا فشل، نحاول تحويل المعرف
-        if (!url && id.startsWith('tt')) {
-          const numId = parseInt(id.replace('tt', ''));
-          if (!isNaN(numId)) {
-            url = buildUrl(provider, { type, id: numId, season, episode });
-          }
+  // 1. اختبار جميع المصادر بالتوازي
+  const results = await Promise.all(
+    providers.map(async (provider) => {
+      // بناء الرابط
+      let url = buildUrl(provider, { type, id, season, episode });
+      
+      // إذا فشل، نحاول تحويل المعرف
+      if (!url && id.startsWith('tt')) {
+        const numId = parseInt(id.replace('tt', ''));
+        if (!isNaN(numId)) {
+          url = buildUrl(provider, { type, id: numId, season, episode });
         }
-        
-        if (!url) throw new Error('no url');
-        
-        // اختبار المصدر
-        const status = await testSource(url);
-        if (!status.isAlive) throw new Error('dead');
-        
-        return {
-          provider: provider.id,
-          label: provider.label,
-          url: url,
-          id: id,
-          isAlive: true,
-          statusCode: status.statusCode
-        };
-      })
-    );
+      }
+      
+      // اختبار المصدر
+      const status = await testSource(url);
+      
+      return {
+        provider: provider.id,
+        label: provider.label,
+        url: url || '#',
+        id: id,
+        isAlive: status.isAlive,
+        statusCode: status.statusCode,
+        hasValidUrl: !!url
+      };
+    })
+  );
 
-    console.log(`✅ تم العثور على مصدر: ${result.provider}`);
-    return [result];
+  // 2. ترتيب النتائج: المصادر العاملة أولاً
+  const sortedResults = results.sort((a, b) => {
+    // المصادر التي تعمل أولاً
+    if (a.isAlive && !b.isAlive) return -1;
+    if (!a.isAlive && b.isAlive) return 1;
+    
+    // ثم حسب الأولوية (ترتيب المصادر في القائمة)
+    const aIndex = providers.findIndex(p => p.id === a.provider);
+    const bIndex = providers.findIndex(p => p.id === b.provider);
+    return aIndex - bIndex;
+  });
 
-  } catch (error) {
-    // إذا لم نجد أي مصدر خلال المهلة
-    console.warn('⚠️ لم يتم العثور على أي مصدر يعمل');
-    return [];
-  }
+  const aliveCount = sortedResults.filter(r => r.isAlive).length;
+  console.log(`✅ ${aliveCount} مصدراً يعمل من أصل ${results.length}`);
+  console.log(`📊 المصادر العاملة: ${sortedResults.filter(r => r.isAlive).map(r => r.provider).join(', ')}`);
+
+  return sortedResults;
 };
 
 // ============================================================
-// 3. البحث عن أنمي (سريع)
+// 3. البحث عن أنمي (يُضاف إلى القائمة)
 // ============================================================
 export const searchAnime = async (params) => {
   const { id, season, episode, language = 'sub', source = 's-2' } = params;
@@ -110,11 +116,12 @@ export const searchAnime = async (params) => {
         id: id,
         type: 'anime',
         language: language,
-        isAlive: true
+        isAlive: true,
+        statusCode: status.statusCode
       };
     }
   } catch (e) {}
   return null;
 };
 
-console.log('⚡ محرك البحث السريع جاهز (Promise.race)');
+console.log('⚡ محرك البحث المتوازي جاهز (جميع المصادر)');
