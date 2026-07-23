@@ -132,6 +132,41 @@ export const missingContent = [
       { number: 32, iframeUrl: 'https://pixeldrain.com/api/file/ggsqH1KT' },
       { number: 33, iframeUrl: 'https://pixeldrain.com/api/file/iEL7tGND' }
     ]
+  },
+
+  // ============================================================
+  // 📺 مسلسل ريمي (غير مدبلج) - 23 حلقة
+  // ============================================================
+  {
+    id: 'remy-ie-naki-ko',
+    label: 'ريمي',
+    type: 'tv',
+    dubbed: false,
+    episodes: [
+      { number: 1, iframeUrl: 'https://pixeldrain.com/api/file/1qeMJo6B' },
+      { number: 2, iframeUrl: 'https://pixeldrain.com/api/file/qYr2ATgm' },
+      { number: 3, iframeUrl: 'https://pixeldrain.com/api/file/abcEcZ2f' },
+      { number: 4, iframeUrl: 'https://pixeldrain.com/api/file/uSUDe81z' },
+      { number: 5, iframeUrl: 'https://pixeldrain.com/api/file/j54dx7bN' },
+      { number: 6, iframeUrl: 'https://pixeldrain.com/api/file/a8dfzEyF' },
+      { number: 7, iframeUrl: 'https://pixeldrain.com/api/file/L6M7AzHg' },
+      { number: 8, iframeUrl: 'https://pixeldrain.com/api/file/ED4BZb6P' },
+      { number: 9, iframeUrl: 'https://pixeldrain.com/api/file/dpPebcg1' },
+      { number: 10, iframeUrl: 'https://pixeldrain.com/api/file/fmnJXrJG' },
+      { number: 11, iframeUrl: 'https://pixeldrain.com/api/file/X92b62P3' },
+      { number: 12, iframeUrl: 'https://pixeldrain.com/api/file/oYXPa968' },
+      { number: 13, iframeUrl: 'https://pixeldrain.com/api/file/BLb8wo79' },
+      { number: 14, iframeUrl: 'https://pixeldrain.com/api/file/hhWdeCDh' },
+      { number: 15, iframeUrl: 'https://pixeldrain.com/api/file/3TkuropX' },
+      { number: 16, iframeUrl: 'https://pixeldrain.com/api/file/Rihj4N4E' },
+      { number: 17, iframeUrl: 'https://pixeldrain.com/api/file/hp9V76FS' },
+      { number: 18, iframeUrl: 'https://pixeldrain.com/api/file/hE2UfmFZ' },
+      { number: 19, iframeUrl: 'https://pixeldrain.com/api/file/P6AgRkr1' },
+      { number: 20, iframeUrl: 'https://pixeldrain.com/api/file/74v1Q9d5' },
+      { number: 21, iframeUrl: 'https://pixeldrain.com/api/file/THfYBTLd' },
+      { number: 22, iframeUrl: 'https://pixeldrain.com/api/file/mRbzxxpY' },
+      { number: 23, iframeUrl: 'https://pixeldrain.com/api/file/zmACTyEg' }
+    ]
   }
 ];
 
