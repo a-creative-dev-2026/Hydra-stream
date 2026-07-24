@@ -167,6 +167,68 @@ export const missingContent = [
       { number: 22, iframeUrl: 'https://pixeldrain.com/api/file/mRbzxxpY' },
       { number: 23, iframeUrl: 'https://pixeldrain.com/api/file/zmACTyEg' }
     ]
+  },
+
+  // ============================================================
+  // 📺 مسلسل بوليانة (غير مدبلج) - 51 حلقة
+  // ============================================================
+  {
+    id: 'pollyanna',
+    label: 'بوليانة',
+    type: 'tv',
+    dubbed: false,
+    episodes: [
+      { number: 1, iframeUrl: 'https://pixeldrain.com/api/file/uZDL7TJ6' },
+      { number: 2, iframeUrl: 'https://pixeldrain.com/api/file/mKYDVFzr' },
+      { number: 3, iframeUrl: 'https://pixeldrain.com/api/file/qBTiHHwU' },
+      { number: 4, iframeUrl: 'https://pixeldrain.com/api/file/rcAWSzst' },
+      { number: 5, iframeUrl: 'https://pixeldrain.com/api/file/7xUsPhaZ' },
+      { number: 6, iframeUrl: 'https://pixeldrain.com/api/file/8kJZHNg3' },
+      { number: 7, iframeUrl: 'https://pixeldrain.com/api/file/JC87JWr7' },
+      { number: 8, iframeUrl: 'https://pixeldrain.com/api/file/Spy2EoZk' },
+      { number: 9, iframeUrl: 'https://pixeldrain.com/api/file/hZoxwk2w' },
+      { number: 10, iframeUrl: 'https://pixeldrain.com/api/file/38gupwTV' },
+      { number: 11, iframeUrl: 'https://pixeldrain.com/api/file/GPggHnDB' },
+      { number: 12, iframeUrl: 'https://pixeldrain.com/api/file/xBPnE9Mx' },
+      { number: 13, iframeUrl: 'https://pixeldrain.com/api/file/uiUePyXG' },
+      { number: 14, iframeUrl: 'https://pixeldrain.com/api/file/66qn1H37' },
+      { number: 15, iframeUrl: 'https://pixeldrain.com/api/file/SpZNNH5a' },
+      { number: 16, iframeUrl: 'https://pixeldrain.com/api/file/M1qjVmTw' },
+      { number: 17, iframeUrl: 'https://pixeldrain.com/api/file/J3t2gA4K' },
+      { number: 18, iframeUrl: 'https://pixeldrain.com/api/file/xZcHyFdy' },
+      { number: 19, iframeUrl: 'https://pixeldrain.com/api/file/vBiyEVnj' },
+      { number: 20, iframeUrl: 'https://pixeldrain.com/api/file/Ph6izRde' },
+      { number: 21, iframeUrl: 'https://pixeldrain.com/api/file/iiQfdPWT' },
+      { number: 22, iframeUrl: 'https://pixeldrain.com/api/file/6iL1po99' },
+      { number: 23, iframeUrl: 'https://pixeldrain.com/api/file/v19ACX4Z' },
+      { number: 24, iframeUrl: 'https://pixeldrain.com/api/file/6Z8NGmbE' },
+      { number: 25, iframeUrl: 'https://pixeldrain.com/api/file/BnvL8QWg' },
+      { number: 26, iframeUrl: 'https://pixeldrain.com/api/file/ipis9tEm' },
+      { number: 27, iframeUrl: 'https://pixeldrain.com/api/file/3WNkyExN' },
+      { number: 28, iframeUrl: 'https://pixeldrain.com/api/file/odvKhJhv' },
+      { number: 29, iframeUrl: 'https://pixeldrain.com/api/file/GPpsJnGD' },
+      { number: 30, iframeUrl: 'https://pixeldrain.com/api/file/jmABKNJV' },
+      { number: 31, iframeUrl: 'https://pixeldrain.com/api/file/n8XUv26g' },
+      { number: 32, iframeUrl: 'https://pixeldrain.com/api/file/Qix5h5JX' },
+      { number: 33, iframeUrl: 'https://pixeldrain.com/api/file/fQbKYJe5' },
+      { number: 34, iframeUrl: 'https://pixeldrain.com/api/file/aL9RfWm5' },
+      { number: 35, iframeUrl: 'https://pixeldrain.com/api/file/qsBvUuEM' },
+      { number: 36, iframeUrl: 'https://pixeldrain.com/api/file/JHNfSpBd' },
+      { number: 37, iframeUrl: 'https://pixeldrain.com/api/file/L3gy7csd' },
+      { number: 38, iframeUrl: 'https://pixeldrain.com/api/file/4zYGRPHA' },
+      { number: 39, iframeUrl: 'https://pixeldrain.com/api/file/HDp5MzPx' },
+      { number: 40, iframeUrl: 'https://pixeldrain.com/api/file/FaiWZSPV' },
+      { number: 41, iframeUrl: 'https://pixeldrain.com/api/file/cjKafF9m' },
+      { number: 42, iframeUrl: 'https://pixeldrain.com/api/file/TsmyaG8D' },
+      { number: 43, iframeUrl: 'https://pixeldrain.com/api/file/VTY8x4im' },
+      { number: 44, iframeUrl: 'https://pixeldrain.com/api/file/zizuzrsa' },
+      { number: 45, iframeUrl: 'https://pixeldrain.com/api/file/5TBa3u5v' },
+      { number: 46, iframeUrl: 'https://pixeldrain.com/api/file/FHf4BsZs' },
+      { number: 47, iframeUrl: 'https://pixeldrain.com/api/file/KjV1t72J' },
+      { number: 48, iframeUrl: 'https://pixeldrain.com/api/file/wjx8o4hK' },
+      { number: 49, iframeUrl: 'https://pixeldrain.com/api/file/kfm6tqTC' },
+      { number: 50, iframeUrl: 'https://pixeldrain.com/api/file/KgZ2e59L' }
+    ]
   }
 ];
 
