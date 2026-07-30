@@ -1,6 +1,6 @@
 // ================================================================
-// 🎬 قائمة المصادر الأساسية (12 مصدراً)
-// 📅 تاريخ التحديث: 12 يوليو 2026
+// 🎬 قائمة المصادر (24 مصدراً) - نسخة نهائية
+// 📅 تاريخ التحديث: 30 يوليو 2026
 // ✅ جميع المصادر تعمل حالياً
 // ================================================================
 
@@ -169,6 +169,210 @@ export const providers = [
     buildUrl: (p) => {
       if (p.type === 'movie') return `https://vidsrc.in/embed/movie/${p.id}`;
       if (p.type === 'tv') return `https://vidsrc.in/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 13. SmashyStream Player
+  // ============================================================
+  {
+    id: 'smashystream',
+    label: 'SmashyStream',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://player.smashystream.com/playere.php?tmdb=${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://player.smashystream.com/playere.php?tmdb=${p.id}&s=${p.season}&e=${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 14. Vidzee Player
+  // ============================================================
+  {
+    id: 'vidzee',
+    label: 'Vidzee Player',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://player.vidzee.wtf/embed/movie/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://player.vidzee.wtf/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 15. Videasy Player
+  // ============================================================
+  {
+    id: 'videasy',
+    label: 'Videasy Player',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://player.videasy.to/movie/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://player.videasy.to/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 16. VidNest
+  // ============================================================
+  {
+    id: 'vidnest',
+    label: 'VidNest',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://vidnest.fun/movie/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://vidnest.fun/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 17. VidKing
+  // ============================================================
+  {
+    id: 'vidking',
+    label: 'VidKing',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://www.vidking.net/embed/movie/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://www.vidking.net/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 18. VidRock
+  // ============================================================
+  {
+    id: 'vidrock',
+    label: 'VidRock',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://vidrock.net/movie/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://vidrock.net/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 19. PrimeSrc
+  // ============================================================
+  {
+    id: 'primesrc',
+    label: 'PrimeSrc',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://primesrc.me/embed/movie?tmdb=${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://primesrc.me/embed/tv?tmdb=${p.id}&s=${p.season}&e=${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 20. CineSrc
+  // ============================================================
+  {
+    id: 'cinesrc',
+    label: 'CineSrc',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://cinesrc.st/embed/movie/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://cinesrc.st/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 21. 1Embed
+  // ============================================================
+  {
+    id: '1embed',
+    label: '1Embed.cc',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://1embed.cc/embed/movie/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://1embed.cc/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 22. Peachify
+  // ============================================================
+  {
+    id: 'peachify',
+    label: 'Peachify',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://peachify.pro/embed/movie/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://peachify.pro/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 23. FilmU
+  // ============================================================
+  {
+    id: 'filmu',
+    label: 'FilmU',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://embed.filmu.in/movie/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://embed.filmu.in/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 24. VidZen
+  // ============================================================
+  {
+    id: 'vidzen',
+    label: 'VidZen',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://vidzen.fun/movie/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://vidzen.fun/tv/${p.id}/${p.season}/${p.episode}`;
+      }
       return '';
     }
   }
