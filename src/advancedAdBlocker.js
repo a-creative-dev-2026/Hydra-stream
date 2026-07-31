@@ -1,5 +1,5 @@
 // ================================================================
-// 🛡️ نظام منع الإعلانات Pro Max - 10 طبقات
+// 🛡️ نظام منع الإعلانات - متوافق مع السيرفر الوسيط (Proxy)
 // ================================================================
 
 const AD_DOMAINS = [
@@ -11,27 +11,17 @@ const AD_DOMAINS = [
   'clickadu.com', 'mgid.com', 'revcontent.com', 'cpmstar.com',
   'adform.net', 'bidswitch.net', 'casalemedia.com', 'contextweb.com',
   'lijit.com', 'adblade.com', 'adtech.com', 'adverttraffic.com',
-  'popcash.net', 'adcash.com', 'hilltopads.com', 'trafficjunky.com'
-];
-
-const AD_SELECTORS = [
-  '[id*="ad-"]', '[id*="ads-"]', '[id*="banner"]', '[id*="popup"]',
-  '[id*="sponsor"]', '[id*="promo"]', '[id*="overlay"]',
-  '[class*="ad-"]', '[class*="ads-"]', '[class*="banner"]',
-  '[class*="popup"]', '[class*="sponsor"]', '[class*="promo"]',
-  '[class*="preroll"]', '[class*="midroll"]', '[class*="postroll"]',
-  '[class*="ad-container"]', '[class*="ad-wrapper"]', '[class*="ad-overlay"]',
-  '[class*="video-ads"]', '.adsbox', '.ad-slot', '.adsbygoogle'
-];
-
-const USER_AGENTS = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+  'popcash.net', 'adcash.com', 'hilltopads.com', 'trafficjunky.com',
+  'adsbygoogle', 'pagead2', 'prebid'
 ];
 
 const cache = new Map();
 const CACHE_TTL = 30 * 60 * 1000;
+
+const USER_AGENTS = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0'
+];
 
 function getRandomUA() {
   return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
@@ -69,8 +59,7 @@ async function fetchHtml(url, timeout = 12000) {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
         'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
-        'DNT': '1'
+        'Pragma': 'no-cache'
       },
       signal: controller.signal,
       redirect: 'follow'
@@ -104,61 +93,62 @@ function extractDirectVideo(html) {
 }
 
 // ============================================================
-// سكربت إزالة الإعلانات (قوي)
+// سكربت الإزالة (يُحقن داخل الـ Proxy)
 // ============================================================
 export function getAdRemovalScript() {
   return `
 (function() {
-  const badWords = /ad|ads|banner|popup|sponsor|promo|overlay|preroll|midroll|advert|doubleclick|taboola|outbrain|juicy|exoclick|popads|adsterra|propeller/i;
+  var bad = /ad|ads|banner|popup|sponsor|promo|overlay|preroll|midroll|advert|doubleclick|taboola|outbrain|juicy|exoclick|popads|adsterra|propeller|popcash|adsbygoogle|pagead/i;
 
   function isBad(el) {
     if (!el || el.nodeType !== 1) return false;
-    const id = (el.id || '').toLowerCase();
-    const cls = (typeof el.className === 'string' ? el.className : '').toLowerCase();
-    const src = (el.src || el.href || '').toLowerCase();
-    return badWords.test(id + ' ' + cls + ' ' + src);
+    var id = (el.id || '').toLowerCase();
+    var cls = (typeof el.className === 'string' ? el.className : '').toLowerCase();
+    var src = (el.src || el.href || '').toLowerCase();
+    return bad.test(id + ' ' + cls + ' ' + src);
   }
 
   function clean() {
-    document.querySelectorAll('div, iframe, ins, section, aside, span').forEach(function(el) {
-      if (isBad(el)) {
-        try { el.remove(); } catch(e) {}
-      }
-    });
-
-    document.querySelectorAll('[style*="fixed"],[style*="absolute"]').forEach(function(el) {
-      if (isBad(el) || (el.offsetWidth > 300 && el.offsetHeight > 250)) {
-        try { el.remove(); } catch(e) {}
-      }
-    });
-
-    document.querySelectorAll('body > div, body > iframe').forEach(function(el) {
-      try {
-        const style = window.getComputedStyle(el);
-        if ((style.position === 'fixed' || style.position === 'absolute') && parseInt(style.zIndex) > 10) {
-          el.style.display = 'none';
+    try {
+      document.querySelectorAll('div, iframe, ins, section, aside, span, a').forEach(function(el) {
+        if (isBad(el)) {
+          try { el.remove(); } catch(e) {}
         }
-      } catch(e) {}
-    });
+      });
+
+      document.querySelectorAll('[style*="fixed"],[style*="absolute"]').forEach(function(el) {
+        if (isBad(el)) {
+          try { el.remove(); } catch(e) {}
+        }
+      });
+
+      document.querySelectorAll('body > div, body > iframe').forEach(function(el) {
+        try {
+          var style = window.getComputedStyle(el);
+          if ((style.position === 'fixed' || style.position === 'absolute') && parseInt(style.zIndex) > 10) {
+            el.style.display = 'none';
+          }
+        } catch(e) {}
+      });
+    } catch(e) {}
   }
 
   clean();
-  setInterval(clean, 800);
+  setInterval(clean, 700);
 
-  const obs = new MutationObserver(function() { clean(); });
   if (document.body) {
-    obs.observe(document.body, { childList: true, subtree: true });
+    new MutationObserver(function() { clean(); }).observe(document.body, { childList: true, subtree: true });
   } else {
     document.addEventListener('DOMContentLoaded', function() {
-      obs.observe(document.body, { childList: true, subtree: true });
+      new MutationObserver(function() { clean(); }).observe(document.body, { childList: true, subtree: true });
     });
   }
 
   window.open = function() { return null; };
 
   document.addEventListener('click', function(e) {
-    const a = e.target.closest('a');
-    if (a && a.href && badWords.test(a.href)) {
+    var a = e.target.closest('a');
+    if (a && a.href && bad.test(a.href)) {
       e.preventDefault();
       e.stopPropagation();
     }
@@ -168,7 +158,7 @@ export function getAdRemovalScript() {
 }
 
 // ============================================================
-// الدالة المطلوبة من cache.js
+// الدالة المستخدمة في cache.js
 // ============================================================
 export async function getAdFreeVideo(embedUrl, providerId = 'unknown') {
   if (!embedUrl || embedUrl === '#') return embedUrl;
