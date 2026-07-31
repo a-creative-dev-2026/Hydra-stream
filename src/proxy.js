@@ -1,5 +1,5 @@
 // ================================================================
-// 🛡️ سيرفر وسيط Pro Max - نسخة محسنة ضد الحجب
+// 🛡️ Proxy Pro Max - أقوى تنظيف إعلانات ممكن بدون كسر المشغل
 // ================================================================
 
 import express from 'express';
@@ -9,52 +9,28 @@ const router = express.Router();
 
 const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0'
 ];
-
-function getRandomUA() {
-  return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
-}
 
 router.get('/proxy', async (req, res) => {
   const target = req.query.url;
-
   if (!target) {
-    return res.status(400).json({
-      success: false,
-      error: 'الباراميتر url مطلوب',
-      example: '/api/proxy?url=https://vidsrc.pm/embed/movie/tt1375666'
-    });
+    return res.status(400).json({ success: false, error: 'url مطلوب' });
   }
 
   try {
-    let targetUrl;
-    try {
-      targetUrl = new URL(target);
-    } catch {
-      return res.status(400).json({ success: false, error: 'الرابط غير صالح' });
-    }
-
+    const targetUrl = new URL(target);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 18000);
 
     const response = await fetch(target, {
-      method: 'GET',
       headers: {
-        'User-Agent': getRandomUA(),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
+        'User-Agent': USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
         'Referer': targetUrl.origin + '/',
         'Origin': targetUrl.origin,
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Upgrade-Insecure-Requests': '1'
+        'Cache-Control': 'no-cache'
       },
       redirect: 'follow',
       signal: controller.signal
@@ -65,20 +41,24 @@ router.get('/proxy', async (req, res) => {
     if (!response.ok) {
       return res.status(response.status).json({
         success: false,
-        error: `فشل جلب الصفحة (كود: ${response.status})`,
-        target: target
+        error: `فشل الجلب (كود ${response.status})`
       });
     }
 
     let html = await response.text();
 
-    // تنظيف الإعلانات
+    // ===== تنظيف عنيف للإعلانات =====
     html = html
-      .replace(/<script[^>]*(ads|doubleclick|googlesyndication|taboola|outbrain|juicyads|exoclick|popads|adsterra|propeller|popcash|adcash)[^>]*>[\s\S]*?<\/script>/gi, '')
-      .replace(/<iframe[^>]*(doubleclick|googlesyndication|adservice|taboola|outbrain|juicyads|exoclick|popads|adsterra|propeller|banner|popup)[^>]*>[\s\S]*?<\/iframe>/gi, '')
-      .replace(/<div[^>]*(id|class)=["'][^"']*(ad-|ads-|banner|popup|sponsor|promo|overlay)[^"']*["'][^>]*>[\s\S]*?<\/div>/gi, '');
+      // حذف كل السكربتات الإعلانية المعروفة
+      .replace(/<script[^>]*>[\s\S]*?(doubleclick|googlesyndication|adservice|taboola|outbrain|juicyads|exoclick|popads|adsterra|propeller|popcash|adcash|mgid|revcontent|prebid|adsbygoogle|pagead)[\s\S]*?<\/script>/gi, '')
+      // حذف كل الـ iframes الإعلانية
+      .replace(/<iframe[^>]*(doubleclick|googlesyndication|adservice|taboola|outbrain|juicyads|exoclick|popads|adsterra|propeller|banner|popup|ads)[^>]*>[\s\S]*?<\/iframe>/gi, '')
+      // حذف عناصر الإعلانات الشائعة
+      .replace(/<div[^>]*(id|class)=["'][^"']*(ad-|ads-|banner|popup|sponsor|promo|overlay|advert)[^"']*["'][^>]*>[\s\S]*?<\/div>/gi, '')
+      // حذف روابط الإعلانات
+      .replace(/<a[^>]*(href=["'][^"']*(doubleclick|juicyads|exoclick|popads|adsterra)[^"']*["'])[^>]*>[\s\S]*?<\/a>/gi, '');
 
-    // حقن سكربت الإزالة
+    // حقن سكربت الإزالة القوي
     const script = `<script>${getAdRemovalScript()}</script>`;
     if (html.includes('</body>')) {
       html = html.replace('</body>', script + '</body>');
@@ -93,20 +73,10 @@ router.get('/proxy', async (req, res) => {
 
   } catch (err) {
     console.error('Proxy Error:', err.message);
-
-    // رسالة خطأ أوضح
-    let message = 'فشل في جلب المصدر';
-    if (err.name === 'AbortError') {
-      message = 'انتهت مهلة الاتصال بالمصدر (Timeout)';
-    } else if (err.message.includes('fetch')) {
-      message = 'المصدر يرفض الاتصال من السيرفر (محمي أو محجوب)';
-    }
-
     res.status(500).json({
       success: false,
-      error: message,
-      details: err.message,
-      tip: 'جرب مصدر آخر أو انتظر قليلاً ثم أعد المحاولة'
+      error: err.name === 'AbortError' ? 'انتهت مهلة الاتصال' : 'فشل في جلب المصدر',
+      details: err.message
     });
   }
 });
