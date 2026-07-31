@@ -81,7 +81,22 @@ export const providers = [
   // ✅ مصادر جيدة (تعمل بشكل متوسط)
   // ============================================================
 
-  // 6. VidLink.pro
+  // 6. 2Embed.cc
+  {
+    id: '2embed.cc',
+    label: '2Embed.cc',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://www.2embed.cc/embed/${p.id}`;
+      }
+      if (p.type === 'tv') {
+        return `https://www.2embed.cc/embed/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // 7. VidLink.pro
   {
     id: 'vidlink',
     label: 'VidLink.pro',
@@ -92,7 +107,7 @@ export const providers = [
     }
   },
 
-  // 7. VidSrc.top
+  // 8. VidSrc.top
   {
     id: 'vidsrc.top',
     label: 'VidSrc.top',
@@ -103,7 +118,7 @@ export const providers = [
     }
   },
 
-  // 8. VidSrc.me
+  // 9. VidSrc.me
   {
     id: 'vidsrc.me',
     label: 'VidSrc.me',
@@ -114,7 +129,7 @@ export const providers = [
     }
   },
 
-  // 9. VsEmbed.ru
+  // 10. VsEmbed.ru
   {
     id: 'vsembed',
     label: 'VsEmbed.ru',
@@ -125,7 +140,7 @@ export const providers = [
     }
   },
 
-  // 10. VidSpark.to
+  // 11. VidSpark.to
   {
     id: 'vidspark',
     label: 'VidSpark.to',
@@ -136,7 +151,7 @@ export const providers = [
     }
   },
 
-  // 11. VidSrc.in
+  // 12. VidSrc.in
   {
     id: 'vidsrc.in',
     label: 'VidSrc.in',
@@ -147,7 +162,7 @@ export const providers = [
     }
   },
 
-  // 12. 1Embed.cc
+  // 13. 1Embed.cc
   {
     id: '1embed',
     label: '1Embed.cc',
@@ -166,7 +181,7 @@ export const providers = [
   // ⚠️ مصادر ضعيفة (تعمل أحياناً أو بطيئة)
   // ============================================================
 
-  // 13. SmashyStream
+  // 14. SmashyStream
   {
     id: 'smashystream',
     label: 'SmashyStream',
@@ -181,7 +196,7 @@ export const providers = [
     }
   },
 
-  // 14. Vidzee
+  // 15. Vidzee
   {
     id: 'vidzee',
     label: 'Vidzee',
@@ -196,7 +211,7 @@ export const providers = [
     }
   },
 
-  // 15. Videasy
+  // 16. Videasy
   {
     id: 'videasy',
     label: 'Videasy',
@@ -211,7 +226,7 @@ export const providers = [
     }
   },
 
-  // 16. VidNest
+  // 17. VidNest
   {
     id: 'vidnest',
     label: 'VidNest',
@@ -226,7 +241,7 @@ export const providers = [
     }
   },
 
-  // 17. VidKing
+  // 18. VidKing
   {
     id: 'vidking',
     label: 'VidKing',
@@ -241,7 +256,7 @@ export const providers = [
     }
   },
 
-  // 18. VidRock
+  // 19. VidRock
   {
     id: 'vidrock',
     label: 'VidRock',
@@ -256,7 +271,7 @@ export const providers = [
     }
   },
 
-  // 19. PrimeSrc
+  // 20. PrimeSrc
   {
     id: 'primesrc',
     label: 'PrimeSrc',
@@ -271,7 +286,7 @@ export const providers = [
     }
   },
 
-  // 20. CineSrc
+  // 21. CineSrc
   {
     id: 'cinesrc',
     label: 'CineSrc',
@@ -286,7 +301,7 @@ export const providers = [
     }
   },
 
-  // 21. Peachify
+  // 22. Peachify
   {
     id: 'peachify',
     label: 'Peachify',
@@ -301,7 +316,7 @@ export const providers = [
     }
   },
 
-  // 22. FilmU
+  // 23. FilmU
   {
     id: 'filmu',
     label: 'FilmU',
@@ -316,7 +331,7 @@ export const providers = [
     }
   },
 
-  // 23. VidZen
+  // 24. VidZen
   {
     id: 'vidzen',
     label: 'VidZen',
@@ -331,7 +346,7 @@ export const providers = [
     }
   },
 
-  // 24. 111Movies (الأضعف حالياً)
+  // 25. 111Movies (الأضعف حالياً)
   {
     id: '111movies',
     label: '111Movies',
