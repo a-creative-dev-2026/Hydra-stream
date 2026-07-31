@@ -1,15 +1,21 @@
 // ================================================================
-// 📦 ملف index.js - الخادم الرئيسي (محدث بالكامل)
+// 📦 ملف index.js - الخادم الرئيسي (محدث بالكامل + Proxy)
 // ================================================================
 
 import express from 'express';
 import cors from 'cors';
 import { getStreams } from './src/cache.js';
 import { missingContent } from './src/missingContent.js';
+import proxyRouter from './src/proxy.js';   // ← تم إضافة هذا السطر
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// ============================================================
+// 🛡️ تفعيل السيرفر الوسيط (Proxy)
+// ============================================================
+app.use('/api', proxyRouter);   // ← تم إضافة هذا السطر
 
 // ============================================================
 // 📊 نقطة الصحة
@@ -56,12 +62,10 @@ app.get('/api/stream', async (req, res) => {
 // 📦 نقاط النهاية للمحتوى المفقود
 // ============================================================
 
-// دالة مساعدة للقراءة
 const readMissingData = () => {
   return { cartoons: missingContent };
 };
 
-// جلب كل المحتوى المفقود من نوع معين
 app.get('/api/missing/:type', (req, res) => {
   const { type } = req.params;
   const data = readMissingData();
@@ -72,7 +76,6 @@ app.get('/api/missing/:type', (req, res) => {
   res.json({ success: true, count: filtered.length, data: filtered });
 });
 
-// جلب محتوى مفقود معين بواسطة ID
 app.get('/api/missing/:type/:id', (req, res) => {
   const { type, id } = req.params;
   const data = readMissingData();
@@ -83,7 +86,6 @@ app.get('/api/missing/:type/:id', (req, res) => {
   res.json({ success: true, data: item });
 });
 
-// جلب حلقة معينة من مسلسل مفقود
 app.get('/api/missing/:type/:id/episode/:number', (req, res) => {
   const { type, id, number } = req.params;
   const data = readMissingData();
@@ -111,6 +113,7 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/api/health',
       stream: '/api/stream?type=movie&id=tt1375666',
+      proxy: '/api/proxy?url=https://vidsrc.pm/embed/movie/tt1375666',
       missing: '/api/missing/tv/ana-wa-akhi-dubbed'
     }
   });
@@ -122,5 +125,6 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ HydraStream running on port ${PORT}`);
+  console.log(`🛡️ Proxy available at /api/proxy?url=...`);
   console.log(`📦 Missing content endpoints available at /api/missing/...`);
 });
