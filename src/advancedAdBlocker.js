@@ -1,18 +1,8 @@
 // ================================================================
-// 🛡️ نظام منع الإعلانات القوي - 10 طبقات (بدون Sandbox)
+// 🛡️ نظام منع الإعلانات Pro Max - 10 طبقات
+// يعمل على جميع المصادر (25 مصدر) بدون استثناء
+// بدون Sandbox
 // ================================================================
-
-const TRUSTED_SOURCES = [
-  'moviesapi.to',
-  'player.videasy.net',
-  'vidcore.org',
-  'vidsrc.pm',
-  'vidsrc.me',
-  'vidsrc.mov',
-  'vsembed.ru',
-  'vidspark.to',
-  'pixeldrain.com'
-];
 
 const AD_DOMAINS = [
   'doubleclick.net', 'googlesyndication.com', 'googleadservices.com',
@@ -22,19 +12,23 @@ const AD_DOMAINS = [
   'exoclick.com', 'popads.net', 'adsterra.com', 'propellerads.com',
   'clickadu.com', 'mgid.com', 'revcontent.com', 'cpmstar.com',
   'adform.net', 'bidswitch.net', 'casalemedia.com', 'contextweb.com',
-  'lijit.com', 'adblade.com', 'adtech.com', 'adverttraffic.com'
+  'lijit.com', 'adblade.com', 'adtech.com', 'adverttraffic.com',
+  'popcash.net', 'adcash.com', 'hilltopads.com', 'trafficjunky.com',
+  'adthrive.com', 'media.net', 'adnami.io', 'adzerk.net'
 ];
 
 const AD_SELECTORS = [
   '[id*="ad-"]', '[id*="ads-"]', '[id*="banner"]', '[id*="popup"]',
-  '[id*="sponsor"]', '[id*="promo"]', '[class*="ad-"]', '[class*="ads-"]',
-  '[class*="banner"]', '[class*="popup"]', '[class*="sponsor"]',
-  '[class*="promo"]', '[class*="preroll"]', '[class*="midroll"]',
-  '[class*="postroll"]', '[class*="ad-container"]', '[class*="ad-wrapper"]',
-  '[class*="ad-overlay"]', '[class*="video-ads"]', '.adsbox', '.ad-slot',
+  '[id*="sponsor"]', '[id*="promo"]', '[id*="overlay"]',
+  '[class*="ad-"]', '[class*="ads-"]', '[class*="banner"]',
+  '[class*="popup"]', '[class*="sponsor"]', '[class*="promo"]',
+  '[class*="preroll"]', '[class*="midroll"]', '[class*="postroll"]',
+  '[class*="ad-container"]', '[class*="ad-wrapper"]', '[class*="ad-overlay"]',
+  '[class*="video-ads"]', '.adsbox', '.ad-slot', '.adsbygoogle',
   'iframe[src*="doubleclick"]', 'iframe[src*="googlesyndication"]',
   'iframe[src*="adservice"]', 'iframe[src*="taboola"]', 'iframe[src*="outbrain"]',
-  'iframe[src*="juicyads"]', 'iframe[src*="exoclick"]', 'iframe[src*="popads"]'
+  'iframe[src*="juicyads"]', 'iframe[src*="exoclick"]', 'iframe[src*="popads"]',
+  'iframe[src*="adsterra"]', 'iframe[src*="propeller"]', 'iframe[src*="popcash"]'
 ];
 
 const USER_AGENTS = [
@@ -54,22 +48,24 @@ function isAdUrl(url = '') {
   if (!url) return true;
   const lower = url.toLowerCase();
   return AD_DOMAINS.some(d => lower.includes(d)) ||
-         /[\/\-\.](ad|ads|banner|popup|sponsor|promo|track|pixel|click)[\/\-\.]/i.test(lower);
+    /[\/\-\.](ad|ads|banner|popup|sponsor|promo|track|pixel|click)[\/\-\.]/i.test(lower);
 }
 
 function cleanUrl(url) {
   try {
     const u = new URL(url);
-    ['utm_source','utm_medium','utm_campaign','utm_term','utm_content',
-     'fbclid','gclid','msclkid','ref','click_id','affiliate','partner',
-     'campaign','source','tracking','ad','banner','popup'].forEach(p => u.searchParams.delete(p));
+    [
+      'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+      'fbclid', 'gclid', 'msclkid', 'ref', 'click_id', 'affiliate', 'partner',
+      'campaign', 'source', 'tracking', 'ad', 'banner', 'popup'
+    ].forEach(p => u.searchParams.delete(p));
     return u.toString();
   } catch {
     return url;
   }
 }
 
-async function fetchHtml(url, timeout = 10000) {
+async function fetchHtml(url, timeout = 12000) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
@@ -114,37 +110,24 @@ function extractDirectVideo(html) {
   return null;
 }
 
-function cleanHtml(html) {
-  let cleaned = html;
-
-  // حذف سكربتات الإعلانات
-  cleaned = cleaned.replace(/<script[^>]*(ads|doubleclick|googlesyndication|taboola|outbrain|juicyads|exoclick|popads|adsterra|propeller)[^>]*>[\s\S]*?<\/script>/gi, '');
-
-  // حذف iframes إعلانية
-  cleaned = cleaned.replace(/<iframe[^>]*(doubleclick|googlesyndication|adservice|taboola|outbrain|juicyads|exoclick|popads|banner|popup)[^>]*>[\s\S]*?<\/iframe>/gi, '');
-
-  // حذف عناصر HTML إعلانية شائعة
-  cleaned = cleaned.replace(/<div[^>]*(id|class)=["'][^"']*(ad-|ads-|banner|popup|sponsor|promo)[^"']*["'][^>]*>[\s\S]*?<\/div>/gi, '');
-
-  return cleaned;
-}
-
 export function getAdRemovalScript() {
   return `
 (function() {
   const selectors = ${JSON.stringify(AD_SELECTORS)};
-  
+
   function removeAds() {
-    selectors.forEach(sel => {
+    selectors.forEach(function(sel) {
       try {
-        document.querySelectorAll(sel).forEach(el => el.remove());
+        document.querySelectorAll(sel).forEach(function(el) {
+          el.remove();
+        });
       } catch(e) {}
     });
 
     // إزالة العناصر الثابتة والمشبوهة
-    document.querySelectorAll('[style*="position:fixed"],[style*="position: fixed"],[style*="z-index"]').forEach(el => {
-      const id = (el.id || '').toLowerCase();
-      const cls = (typeof el.className === 'string' ? el.className : '').toLowerCase();
+    document.querySelectorAll('[style*="position:fixed"],[style*="position: fixed"],[style*="z-index"]').forEach(function(el) {
+      var id = (el.id || '').toLowerCase();
+      var cls = (typeof el.className === 'string' ? el.className : '').toLowerCase();
       if (/ad|banner|popup|modal|overlay|sponsor|promo/.test(id + ' ' + cls)) {
         el.remove();
       }
@@ -153,16 +136,29 @@ export function getAdRemovalScript() {
 
   removeAds();
 
-  const observer = new MutationObserver(() => removeAds());
   if (document.body) {
+    var observer = new MutationObserver(function() {
+      removeAds();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
-  setInterval(removeAds, 1500);
+  setInterval(removeAds, 1200);
 
   // منع النوافذ المنبثقة
-  const originalOpen = window.open;
   window.open = function() { return null; };
+
+  // منع بعض التوجيهات الإعلانية
+  document.addEventListener('click', function(e) {
+    var target = e.target.closest('a');
+    if (target && target.href) {
+      var href = target.href.toLowerCase();
+      if (/doubleclick|googlesyndication|juicyads|exoclick|popads|adsterra|propeller|popcash/.test(href)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+  }, true);
 })();
 `;
 }
@@ -170,35 +166,24 @@ export function getAdRemovalScript() {
 export async function getAdFreeVideo(embedUrl, providerId = 'unknown') {
   if (!embedUrl || embedUrl === '#') return embedUrl;
 
-  const cacheKey = `\( {providerId}: \){embedUrl}`;
+  const cacheKey = providerId + ':' + embedUrl;
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.time < CACHE_TTL) {
     return cached.url;
   }
 
-  // مصادر موثوقة → نرجعها مباشرة بعد تنظيف بسيط
-  if (TRUSTED_SOURCES.some(s => embedUrl.includes(s))) {
-    const cleaned = cleanUrl(embedUrl);
-    cache.set(cacheKey, { url: cleaned, time: Date.now() });
-    return cleaned;
-  }
-
   try {
+    // محاولة استخراج رابط فيديو مباشر من الصفحة
     const html = await fetchHtml(embedUrl);
-    if (!html) {
-      cache.set(cacheKey, { url: embedUrl, time: Date.now() });
-      return embedUrl;
+    if (html) {
+      const direct = extractDirectVideo(html);
+      if (direct) {
+        cache.set(cacheKey, { url: direct, time: Date.now() });
+        return direct;
+      }
     }
 
-    // محاولة استخراج رابط فيديو مباشر
-    const direct = extractDirectVideo(html);
-    if (direct) {
-      cache.set(cacheKey, { url: direct, time: Date.now() });
-      return direct;
-    }
-
-    // لو ما قدرنا نستخرج رابط مباشر → نرجع الرابط الأصلي
-    // (التنظيف الحقيقي يصير عبر السكربت على العميل أو الـ Proxy)
+    // إذا فشل الاستخراج نرجع الرابط بعد تنظيف الباراميترات
     const cleaned = cleanUrl(embedUrl);
     cache.set(cacheKey, { url: cleaned, time: Date.now() });
     return cleaned;
@@ -213,7 +198,9 @@ export async function getAdFreeVideo(embedUrl, providerId = 'unknown') {
 setInterval(() => {
   const now = Date.now();
   for (const [key, value] of cache) {
-    if (now - value.time > CACHE_TTL) cache.delete(key);
+    if (now - value.time > CACHE_TTL) {
+      cache.delete(key);
+    }
   }
 }, 60 * 60 * 1000);
 
@@ -221,6 +208,5 @@ export default {
   getAdFreeVideo,
   getAdRemovalScript,
   cleanUrl,
-  isAdUrl,
-  TRUSTED_SOURCES
+  isAdUrl
 };
