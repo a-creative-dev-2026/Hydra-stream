@@ -35,20 +35,20 @@ export const getStreams = async (params) => {
         sources = missing.episodes.map(ep => ({
           id: `${missing.id}-ep${ep.number}`,
           label: `${missing.label} - الحلقة ${ep.number}`,
-          url: ep.iframeUrl,
+          url: ep.iframeUrl, // ✅ الرابط المباشر
           status: 'ready',
           isMissing: true,
-          type: 'iframe',
+          type: 'direct',
           episode: ep.number
         }));
       } else {
         sources = [{
           id: missing.id,
           label: missing.label,
-          url: missing.iframeUrl,
+          url: missing.iframeUrl, // ✅ الرابط المباشر
           status: 'ready',
           isMissing: true,
-          type: 'iframe'
+          type: 'direct'
         }];
       }
       
@@ -118,20 +118,20 @@ export const getStreams = async (params) => {
           return item.episodes.map(ep => ({
             id: `${item.id}-ep${ep.number}`,
             label: `${item.label} - الحلقة ${ep.number}`,
-            url: ep.iframeUrl,
+            url: ep.iframeUrl, // ✅ الرابط المباشر
             status: '✅ يعمل (محتوى مفقود)',
             isMissing: true,
-            type: 'iframe',
+            type: 'direct',
             episode: ep.number
           }));
         } else {
           return [{
             id: item.id,
             label: item.label,
-            url: item.iframeUrl,
+            url: item.iframeUrl, // ✅ الرابط المباشر
             status: '✅ يعمل (محتوى مفقود)',
             isMissing: true,
-            type: 'iframe'
+            type: 'direct'
           }];
         }
       });
