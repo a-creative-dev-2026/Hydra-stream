@@ -1,26 +1,27 @@
 // ================================================================
-// 📦 ملف index.js - الخادم الرئيسي (Pro Max + Proxy)
+// 📦 ملف index.js - الخادم الرئيسي (محدث بالكامل)
 // ================================================================
 
 import express from 'express';
 import cors from 'cors';
 import { getStreams } from './src/cache.js';
 import { missingContent } from './src/missingContent.js';
-import proxyRouter from './src/proxy.js';
+import { providers } from './src/providers.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// تفعيل السيرفر الوسيط
-app.use('/api', proxyRouter);
-
-// نقطة الصحة
+// ============================================================
+// 📊 نقطة الصحة
+// ============================================================
 app.get('/api/health', (req, res) => {
-  res.json({ success: true, status: 'ok', service: 'HydraStream Pro Max' });
+  res.json({ success: true, status: 'ok', service: 'HydraStream' });
 });
 
-// جلب المصادر
+// ============================================================
+// 🎬 نقطة جلب المصادر (العادية + المفقودة)
+// ============================================================
 app.get('/api/stream', async (req, res) => {
   const { type, id, season, episode } = req.query;
 
@@ -52,9 +53,16 @@ app.get('/api/stream', async (req, res) => {
   }
 });
 
-// المحتوى المفقود
-const readMissingData = () => ({ cartoons: missingContent });
+// ============================================================
+// 📦 نقاط النهاية للمحتوى المفقود
+// ============================================================
 
+// دالة مساعدة للقراءة
+const readMissingData = () => {
+  return { cartoons: missingContent };
+};
+
+// جلب كل المحتوى المفقود من نوع معين
 app.get('/api/missing/:type', (req, res) => {
   const { type } = req.params;
   const data = readMissingData();
@@ -65,6 +73,7 @@ app.get('/api/missing/:type', (req, res) => {
   res.json({ success: true, count: filtered.length, data: filtered });
 });
 
+// جلب محتوى مفقود معين بواسطة ID
 app.get('/api/missing/:type/:id', (req, res) => {
   const { type, id } = req.params;
   const data = readMissingData();
@@ -75,6 +84,7 @@ app.get('/api/missing/:type/:id', (req, res) => {
   res.json({ success: true, data: item });
 });
 
+// جلب حلقة معينة من مسلسل مفقود
 app.get('/api/missing/:type/:id/episode/:number', (req, res) => {
   const { type, id, number } = req.params;
   const data = readMissingData();
@@ -92,23 +102,26 @@ app.get('/api/missing/:type/:id/episode/:number', (req, res) => {
   res.json({ success: true, episode });
 });
 
-// الصفحة الرئيسية
+// ============================================================
+// 🏠 نقطة الجذر
+// ============================================================
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'HydraStream Pro Max is running',
+    message: 'HydraStream is running',
     endpoints: {
       health: '/api/health',
       stream: '/api/stream?type=movie&id=tt1375666',
-      proxy: '/api/proxy?url=https://vidsrc.pm/embed/movie/tt1375666',
       missing: '/api/missing/tv/ana-wa-akhi-dubbed'
     }
   });
 });
 
-// تشغيل السيرفر
+// ============================================================
+// 🚀 تشغيل السيرفر
+// ============================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ HydraStream Pro Max running on port ${PORT}`);
-  console.log(`🛡️ Proxy available at /api/proxy?url=...`);
+  console.log(`✅ HydraStream running on port ${PORT}`);
+  console.log(`📦 Missing content endpoints available at /api/missing/...`);
 });
