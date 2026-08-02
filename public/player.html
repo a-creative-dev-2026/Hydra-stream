@@ -16,49 +16,57 @@
 <body>
 
   <!--
-    🛡️ allow-popups: مضافة عمداً باش الموقع المصدر "يحس" إنه قادر يفتح نافذة
-    (بعض المصادر ترفض تشتغل أصلاً إذا حستهم ممنوعين من فتح نافذة - زي ما شفت بالصورة).
-
-    🚫 لكن بدون allow-popups-to-escape-sandbox:
-    أي نافذة/تبويب يفتحها الموقع تولد محصورة بنفس قيود الـ sandbox
-    (بدون allow-top-navigation) - يعني تبقى عالقة ومالها تنقل حقيقي،
-    ما تقدرش تفتح Chrome/YouTube ولا أي تطبيق خارجي.
+    ⚠️ ما نحطش sandbox هنا: المصدر إلي عندك يكتشفه ويرفض يشتغل.
+    بدلاً منه: البروكسي (/api/proxy) يخلي المحتوى نفس المصدر (same-origin)
+    مع صفحتنا، وهذا يخلينا نراقب أي تنقل غريب من الصفحة الأم ونوقفه.
   -->
   <iframe
     id="player-frame"
     src=""
-    sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups"
     allow="autoplay; fullscreen; encrypted-media"
     allowfullscreen
-    referrerpolicy="no-referrer"
   ></iframe>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const sourceUrl = params.get('src');
+    const frame = document.getElementById('player-frame');
 
-    if (sourceUrl) {
-      document.getElementById('player-frame').src = sourceUrl;
+    // يبني رابط البروكسي أوتوماتيكياً من أي رابط خام يوصل
+    function buildProxyUrl(raw) {
+      if (!raw) return '';
+      if (raw.indexOf('/api/proxy') !== -1) return raw; // إذا وصل جاهز مسبقاً
+      return '/api/proxy?url=' + encodeURIComponent(raw);
     }
 
-    let currentUrl = window.location.href;
+    const proxiedSrc = buildProxyUrl(sourceUrl);
+    if (proxiedSrc) {
+      frame.src = proxiedSrc;
+    }
 
-    Object.defineProperty(window, 'name', {
-      get() { return ''; },
-      set() { }
-    });
-
-    window.addEventListener('message', function (event) {
-      if (typeof event.data === 'string' && /location|redirect|open|navigate/i.test(event.data)) {
-        return;
+    // ============================================================
+    // 🛡️ Watchdog: يراقب عنوان الـ iframe كل نص ثانية
+    // إذا خرج عن نطاق /api/proxy تاعنا (يعني حاول يهرب/يعيد التوجيه)
+    // يرجعه فوراً للمصدر الأصلي قبل ما يكمل التنقل
+    // ============================================================
+    let watchdog = setInterval(function () {
+      try {
+        const innerHref = frame.contentWindow.location.href;
+        if (
+          innerHref &&
+          innerHref.indexOf('/api/proxy') === -1 &&
+          innerHref !== 'about:blank'
+        ) {
+          console.warn('🛡️ تم رصد محاولة تنقل مشبوهة، جاري الاسترجاع...');
+          frame.src = proxiedSrc;
+        }
+      } catch (e) {
+        // تجاهل أي خطأ عرضي وكمّل المراقبة
       }
-    });
+    }, 500);
 
-    window.addEventListener('beforeunload', function (e) {
-      if (window.location.href !== currentUrl) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
+    window.addEventListener('beforeunload', function () {
+      clearInterval(watchdog);
     });
   </script>
 
