@@ -26,7 +26,6 @@ export const getStreams = async (params) => {
 
   let sources = [];
 
-  // 1. البحث عن المحتوى المفقود
   if (id && id.startsWith('missing-')) {
     const missing = findMissingContent(type, id);
     if (missing) {
@@ -62,7 +61,6 @@ export const getStreams = async (params) => {
     }
   }
 
-  // 2. البحث في المصادر العادية
   if (type === 'movie' || type === 'tv') {
     const searchParams = { type, id, season, episode };
     const searchResults = await searchSources(searchParams);
@@ -92,7 +90,6 @@ export const getStreams = async (params) => {
     sources = processedResults;
   }
 
-  // 3. البحث عن أنمي
   if (type === 'anime' || (type === 'tv' && params.animeSource)) {
     const animeParams = { 
       id, 
@@ -114,7 +111,6 @@ export const getStreams = async (params) => {
     }
   }
 
-  // 4. خطة احتياطية: إضافة المحتوى المفقود
   if (sources.length === 0) {
     const missingByType = getMissingContentByType(type);
     if (missingByType.length > 0) {
@@ -146,7 +142,6 @@ export const getStreams = async (params) => {
     }
   }
 
-  // 5. تخزين في الكاش
   memoryCache.set(cacheKey, {
     timestamp: Date.now(),
     sources: sources
