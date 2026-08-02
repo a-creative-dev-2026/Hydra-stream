@@ -15,10 +15,19 @@
 </head>
 <body>
 
+  <!--
+    🛡️ allow-popups: مضافة عمداً باش الموقع المصدر "يحس" إنه قادر يفتح نافذة
+    (بعض المصادر ترفض تشتغل أصلاً إذا حستهم ممنوعين من فتح نافذة - زي ما شفت بالصورة).
+
+    🚫 لكن بدون allow-popups-to-escape-sandbox:
+    أي نافذة/تبويب يفتحها الموقع تولد محصورة بنفس قيود الـ sandbox
+    (بدون allow-top-navigation) - يعني تبقى عالقة ومالها تنقل حقيقي،
+    ما تقدرش تفتح Chrome/YouTube ولا أي تطبيق خارجي.
+  -->
   <iframe
     id="player-frame"
     src=""
-    sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups"
     allow="autoplay; fullscreen; encrypted-media"
     allowfullscreen
     referrerpolicy="no-referrer"
