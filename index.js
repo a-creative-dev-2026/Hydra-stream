@@ -7,10 +7,14 @@ import cors from 'cors';
 import { getStreams } from './src/cache.js';
 import { missingContent } from './src/missingContent.js';
 import { providers } from './src/providers.js';
+import proxyRouter from './src/proxy.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// 🛡️ نقطة البروكسي (تفلتر الإعلانات من HTML و m3u8) → GET /api/proxy?url=...
+app.use('/api', proxyRouter);
 
 // ============================================================
 // 📊 نقطة الصحة
@@ -57,12 +61,10 @@ app.get('/api/stream', async (req, res) => {
 // 📦 نقاط النهاية للمحتوى المفقود
 // ============================================================
 
-// دالة مساعدة للقراءة
 const readMissingData = () => {
   return { cartoons: missingContent };
 };
 
-// جلب كل المحتوى المفقود من نوع معين
 app.get('/api/missing/:type', (req, res) => {
   const { type } = req.params;
   const data = readMissingData();
@@ -73,7 +75,6 @@ app.get('/api/missing/:type', (req, res) => {
   res.json({ success: true, count: filtered.length, data: filtered });
 });
 
-// جلب محتوى مفقود معين بواسطة ID
 app.get('/api/missing/:type/:id', (req, res) => {
   const { type, id } = req.params;
   const data = readMissingData();
@@ -84,7 +85,6 @@ app.get('/api/missing/:type/:id', (req, res) => {
   res.json({ success: true, data: item });
 });
 
-// جلب حلقة معينة من مسلسل مفقود
 app.get('/api/missing/:type/:id/episode/:number', (req, res) => {
   const { type, id, number } = req.params;
   const data = readMissingData();
@@ -112,7 +112,8 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/api/health',
       stream: '/api/stream?type=movie&id=tt1375666',
-      missing: '/api/missing/tv/ana-wa-akhi-dubbed'
+      missing: '/api/missing/tv/ana-wa-akhi-dubbed',
+      proxy: '/api/proxy?url=https://example.com/embed/xyz'
     }
   });
 });
