@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>مشغل الفيديو</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+    #player-frame {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <iframe
+    id="player-frame"
+    src=""
+    sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+    allow="autoplay; fullscreen; encrypted-media"
+    allowfullscreen
+    referrerpolicy="no-referrer"
+  ></iframe>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const sourceUrl = params.get('src');
+
+    if (sourceUrl) {
+      document.getElementById('player-frame').src = sourceUrl;
+    }
+
+    let currentUrl = window.location.href;
+
+    Object.defineProperty(window, 'name', {
+      get() { return ''; },
+      set() { }
+    });
+
+    window.addEventListener('message', function (event) {
+      if (typeof event.data === 'string' && /location|redirect|open|navigate/i.test(event.data)) {
+        return;
+      }
+    });
+
+    window.addEventListener('beforeunload', function (e) {
+      if (window.location.href !== currentUrl) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+  </script>
+
+</body>
+</html>
