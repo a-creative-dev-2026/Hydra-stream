@@ -92,9 +92,6 @@ function extractDirectVideo(html) {
   return null;
 }
 
-// ============================================================
-// سكربت الإزالة (يُحقن داخل الـ Proxy)
-// ============================================================
 export function getAdRemovalScript() {
   return `
 (function() {
@@ -108,6 +105,28 @@ export function getAdRemovalScript() {
     return bad.test(id + ' ' + cls + ' ' + src);
   }
 
+  function isOverlayLike(el) {
+    if (!el || el.nodeType !== 1 || el === document.body || el === document.documentElement) return false;
+    try {
+      var style = window.getComputedStyle(el);
+      var pos = style.position;
+      if (pos !== 'fixed' && pos !== 'absolute') return false;
+
+      var z = parseInt(style.zIndex) || 0;
+      var rect = el.getBoundingClientRect();
+      var coversViewport =
+        rect.width >= window.innerWidth * 0.6 &&
+        rect.height >= window.innerHeight * 0.6;
+
+      var isInvisible = style.opacity === '0' || style.visibility === 'hidden';
+      var suspiciousZ = z >= 999;
+
+      return coversViewport && (suspiciousZ || isInvisible || z > 10);
+    } catch (e) {
+      return false;
+    }
+  }
+
   function clean() {
     try {
       document.querySelectorAll('div, iframe, ins, section, aside, span, a').forEach(function(el) {
@@ -116,39 +135,77 @@ export function getAdRemovalScript() {
         }
       });
 
-      document.querySelectorAll('[style*="fixed"],[style*="absolute"]').forEach(function(el) {
-        if (isBad(el)) {
+      document.querySelectorAll('div, iframe, section, aside, ins, a').forEach(function(el) {
+        if (isOverlayLike(el)) {
           try { el.remove(); } catch(e) {}
         }
       });
 
-      document.querySelectorAll('body > div, body > iframe').forEach(function(el) {
-        try {
-          var style = window.getComputedStyle(el);
-          if ((style.position === 'fixed' || style.position === 'absolute') && parseInt(style.zIndex) > 10) {
-            el.style.display = 'none';
-          }
-        } catch(e) {}
+      document.querySelectorAll('meta[http-equiv="refresh" i]').forEach(function(el) {
+        try { el.remove(); } catch(e) {}
       });
     } catch(e) {}
   }
 
   clean();
+
+  var fastTicks = 0;
+  var fastTimer = setInterval(function() {
+    clean();
+    fastTicks++;
+    if (fastTicks > 25) clearInterval(fastTimer);
+  }, 200);
+
   setInterval(clean, 700);
 
   if (document.body) {
-    new MutationObserver(function() { clean(); }).observe(document.body, { childList: true, subtree: true });
-  } else {
-    document.addEventListener('DOMContentLoaded', function() {
-      new MutationObserver(function() { clean(); }).observe(document.body, { childList: true, subtree: true });
-    });
+    new MutationObserver(function(mutations) {
+      clean();
+      mutations.forEach(function(m) {
+        m.addedNodes && m.addedNodes.forEach(function(node) {
+          if (node.nodeType === 1 && node.tagName === 'SCRIPT' && node.src && bad.test(node.src)) {
+            try { node.remove(); } catch(e) {}
+          }
+        });
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
   }
 
   window.open = function() { return null; };
 
+  var originalWrite = document.write;
+  document.write = function(html) {
+    if (typeof html === 'string' && bad.test(html)) return;
+    return originalWrite.apply(document, arguments);
+  };
+  document.writeln = document.write;
+
+  function guard(e) {
+    var el = e.target;
+    var depth = 0;
+    while (el && depth < 6) {
+      if (isBad(el) || isOverlayLike(el)) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        return;
+      }
+      el = el.parentElement;
+      depth++;
+    }
+  }
+
+  ['click', 'touchstart', 'touchend', 'pointerdown', 'pointerup', 'mousedown', 'contextmenu'].forEach(function(evt) {
+    document.addEventListener(evt, guard, { capture: true, passive: false });
+  });
+
   document.addEventListener('click', function(e) {
-    var a = e.target.closest('a');
+    var a = e.target.closest && e.target.closest('a');
     if (a && a.href && bad.test(a.href)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (a && a.target === '_blank' && !a.href.match(/^https?:\\/\\/(www\\.)?(youtube|google)\\.com/i)) {
       e.preventDefault();
       e.stopPropagation();
     }
@@ -157,9 +214,6 @@ export function getAdRemovalScript() {
 `;
 }
 
-// ============================================================
-// الدالة المستخدمة في cache.js
-// ============================================================
 export async function getAdFreeVideo(embedUrl, providerId = 'unknown') {
   if (!embedUrl || embedUrl === '#') return embedUrl;
 
@@ -189,9 +243,6 @@ export async function getAdFreeVideo(embedUrl, providerId = 'unknown') {
   }
 }
 
-// ============================================================
-// 🎞️ فلترة إعلانات HLS المدمجة داخل البلايليست (m3u8)
-// ============================================================
 export function filterM3U8Ads(playlistText, baseUrl) {
   if (!playlistText) return playlistText;
 
@@ -234,15 +285,29 @@ export function filterM3U8Ads(playlistText, baseUrl) {
   return output.join('\n');
 }
 
-// ============================================================
-// 🔗 بناء رابط يمرر عبر البروكسي تاعنا
-// ============================================================
 export function buildProxyUrl(targetUrl) {
   if (!targetUrl || targetUrl === '#') return targetUrl;
   return `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
 }
 
-// تنظيف الكاش
+export function sanitizeHtml(html) {
+  if (!html) return html;
+
+  let cleaned = html;
+
+  cleaned = cleaned.replace(/<meta[^>]+http-equiv=["']?refresh["']?[^>]*>/gi, '');
+
+  const adScriptPattern = new RegExp(
+    '<script[^>]+src=["\']?[^"\'>]*(' +
+      AD_DOMAINS.map(d => d.replace(/\./g, '\\.')).join('|') +
+      ')[^"\'>]*["\']?[^>]*><\\/script>',
+    'gi'
+  );
+  cleaned = cleaned.replace(adScriptPattern, '');
+
+  return cleaned;
+}
+
 setInterval(() => {
   const now = Date.now();
   for (const [key, value] of cache) {
@@ -257,6 +322,7 @@ export default {
   getAdRemovalScript,
   filterM3U8Ads,
   buildProxyUrl,
+  sanitizeHtml,
   cleanUrl,
   isAdUrl,
   AD_DOMAINS
