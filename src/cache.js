@@ -3,7 +3,7 @@
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
-import { getAdFreeVideo } from './advancedAdBlocker.js';
+import { getAdFreeVideo, buildProxyUrl } from './advancedAdBlocker.js';
 import { searchSources, searchAnime } from './searchEngine.js';
 import { missingContent, findMissingContent, getMissingContentByType } from './missingContent.js';
 
@@ -14,7 +14,6 @@ export const getStreams = async (params) => {
   const { type, id, season, episode } = params;
   const cacheKey = `${type}:${id}:${season}:${episode}`;
 
-  // التحقق من الكاش
   if (memoryCache.has(cacheKey)) {
     const entry = memoryCache.get(cacheKey);
     if (Date.now() - entry.timestamp < CACHE_TTL) {
@@ -27,7 +26,7 @@ export const getStreams = async (params) => {
 
   let sources = [];
 
-  // 1. البحث عن المحتوى المفقود (إذا كان المعرف يبدأ بـ "missing-")
+  // 1. البحث عن المحتوى المفقود
   if (id && id.startsWith('missing-')) {
     const missing = findMissingContent(type, id);
     if (missing) {
@@ -35,7 +34,8 @@ export const getStreams = async (params) => {
         sources = missing.episodes.map(ep => ({
           id: `${missing.id}-ep${ep.number}`,
           label: `${missing.label} - الحلقة ${ep.number}`,
-          url: ep.iframeUrl, // ✅ الرابط المباشر
+          url: ep.iframeUrl,
+          proxyUrl: buildProxyUrl(ep.iframeUrl),
           status: 'ready',
           isMissing: true,
           type: 'direct',
@@ -45,7 +45,8 @@ export const getStreams = async (params) => {
         sources = [{
           id: missing.id,
           label: missing.label,
-          url: missing.iframeUrl, // ✅ الرابط المباشر
+          url: missing.iframeUrl,
+          proxyUrl: buildProxyUrl(missing.iframeUrl),
           status: 'ready',
           isMissing: true,
           type: 'direct'
@@ -75,10 +76,13 @@ export const getStreams = async (params) => {
           adFreeUrl = await getAdFreeVideo(result.url, result.provider);
           adFree = adFreeUrl !== result.url;
         }
-        
+
+        const finalUrl = adFreeUrl || result.url;
+
         return {
           ...result,
-          url: adFreeUrl || result.url,
+          url: finalUrl,
+          proxyUrl: buildProxyUrl(finalUrl),
           adFree: adFree,
           status: result.isAlive ? '✅ يعمل' : '❌ لا يعمل'
         };
@@ -103,6 +107,7 @@ export const getStreams = async (params) => {
       sources.push({
         ...animeResult,
         url: adFreeUrl,
+        proxyUrl: buildProxyUrl(adFreeUrl),
         adFree: adFreeUrl !== animeResult.url,
         status: '✅ يعمل'
       });
@@ -118,7 +123,8 @@ export const getStreams = async (params) => {
           return item.episodes.map(ep => ({
             id: `${item.id}-ep${ep.number}`,
             label: `${item.label} - الحلقة ${ep.number}`,
-            url: ep.iframeUrl, // ✅ الرابط المباشر
+            url: ep.iframeUrl,
+            proxyUrl: buildProxyUrl(ep.iframeUrl),
             status: '✅ يعمل (محتوى مفقود)',
             isMissing: true,
             type: 'direct',
@@ -128,7 +134,8 @@ export const getStreams = async (params) => {
           return [{
             id: item.id,
             label: item.label,
-            url: item.iframeUrl, // ✅ الرابط المباشر
+            url: item.iframeUrl,
+            proxyUrl: buildProxyUrl(item.iframeUrl),
             status: '✅ يعمل (محتوى مفقود)',
             isMissing: true,
             type: 'direct'
