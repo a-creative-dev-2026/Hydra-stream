@@ -2,7 +2,7 @@
 // 🛡️ نظام منع الإعلانات - متوافق مع السيرفر الوسيط (Proxy)
 // ================================================================
 
-const AD_DOMAINS = [
+export const AD_DOMAINS = [
   'doubleclick.net', 'googlesyndication.com', 'googleadservices.com',
   'adservice.google', 'amazon-adsystem.com', 'taboola.com', 'outbrain.com',
   'pubmatic.com', 'openx.net', 'rubiconproject.com', 'adnxs.com',
@@ -27,7 +27,7 @@ function getRandomUA() {
   return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
 }
 
-function isAdUrl(url = '') {
+export function isAdUrl(url = '') {
   if (!url) return true;
   const lower = url.toLowerCase();
   return AD_DOMAINS.some(d => lower.includes(d)) ||
@@ -189,6 +189,59 @@ export async function getAdFreeVideo(embedUrl, providerId = 'unknown') {
   }
 }
 
+// ============================================================
+// 🎞️ فلترة إعلانات HLS المدمجة داخل البلايليست (m3u8)
+// ============================================================
+export function filterM3U8Ads(playlistText, baseUrl) {
+  if (!playlistText) return playlistText;
+
+  const lines = playlistText.split('\n');
+  const output = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const line = raw.trim();
+
+    if (
+      line.startsWith('#EXT-X-CUE-OUT') ||
+      line.startsWith('#EXT-X-CUE-IN') ||
+      line.startsWith('#EXT-X-SCTE35') ||
+      (line.startsWith('#EXT-X-DATERANGE') && /ad|advert|creative|splice/i.test(line))
+    ) {
+      continue;
+    }
+
+    if (line && !line.startsWith('#')) {
+      let absolute = line;
+      try {
+        absolute = new URL(line, baseUrl).toString();
+      } catch {}
+
+      if (isAdUrl(absolute)) {
+        if (output.length && output[output.length - 1].startsWith('#EXTINF')) {
+          output.pop();
+        }
+        continue;
+      }
+
+      output.push(absolute);
+      continue;
+    }
+
+    output.push(raw);
+  }
+
+  return output.join('\n');
+}
+
+// ============================================================
+// 🔗 بناء رابط يمرر عبر البروكسي تاعنا
+// ============================================================
+export function buildProxyUrl(targetUrl) {
+  if (!targetUrl || targetUrl === '#') return targetUrl;
+  return `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+}
+
 // تنظيف الكاش
 setInterval(() => {
   const now = Date.now();
@@ -202,6 +255,9 @@ setInterval(() => {
 export default {
   getAdFreeVideo,
   getAdRemovalScript,
+  filterM3U8Ads,
+  buildProxyUrl,
   cleanUrl,
-  isAdUrl
+  isAdUrl,
+  AD_DOMAINS
 };
