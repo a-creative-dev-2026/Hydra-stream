@@ -3,7 +3,7 @@
 // ================================================================
 
 import express from 'express';
-import { isAdUrl, getAdRemovalScript, filterM3U8Ads } from './advancedAdBlocker.js';
+import { isAdUrl, getAdRemovalScript, filterM3U8Ads, sanitizeHtml } from './advancedAdBlocker.js';
 
 const router = express.Router();
 
@@ -51,10 +51,10 @@ router.get('/proxy', async (req, res) => {
   try {
     const upstream = await fetch(upstreamUrl.toString(), {
       headers: {
-        'User-Agent': req.headers['user-agent'] || DEFAULT_UA,
-        'Accept': req.headers['accept'] || '*/*',
+        'User-Agent': DEFAULT_UA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Referer': upstreamUrl.origin
+        'Accept-Encoding': 'gzip, deflate, br'
       },
       redirect: 'follow',
       signal: controller.signal
@@ -73,8 +73,23 @@ router.get('/proxy', async (req, res) => {
     }
 
     if (contentType.includes('text/html')) {
+      if (!upstream.ok) {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.status(upstream.status).send(`
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="UTF-8"><title>غير متوفر</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;color:#ccc;display:flex;
+  align-items:center;justify-content:center;font-family:sans-serif;text-align:center}
+</style></head>
+<body><div>⚠️ هذا المصدر غير متوفر حالياً<br><small>جرب مصدر آخر</small></div></body>
+</html>`);
+      }
+
       const html = await upstream.text();
-      const injected = injectAdRemovalScript(html);
+      const sanitized = sanitizeHtml(html);
+      const injected = injectAdRemovalScript(sanitized);
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Access-Control-Allow-Origin', '*');
       return res.status(200).send(injected);
