@@ -12,6 +12,7 @@ import proxyRouter from './src/proxy.js';
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
 // 🛡️ نقطة البروكسي (تفلتر الإعلانات من HTML و m3u8) → GET /api/proxy?url=...
 app.use('/api', proxyRouter);
@@ -113,7 +114,8 @@ app.get('/', (req, res) => {
       health: '/api/health',
       stream: '/api/stream?type=movie&id=tt1375666',
       missing: '/api/missing/tv/ana-wa-akhi-dubbed',
-      proxy: '/api/proxy?url=https://example.com/embed/xyz'
+      proxy: '/api/proxy?url=https://example.com/embed/xyz',
+      player: '/player.html?src=https://example.com/embed/xyz'
     }
   });
 });
